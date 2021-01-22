@@ -3,9 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from PIL import Image
-
-
 def convolution_sequence(in_channels, out_channels, kernel_size, padding=1):
     sequence = nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding),

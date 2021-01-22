@@ -11,8 +11,8 @@ from model2D import UNet
 from standard_utils import Combinations
 
 # LightningDataModule
-batch_size = 10
-data_dir = "/home/matthew/github/vacunet/tests/canine_imaging_dataset/"
+batch_size = 1
+data_dir = "/home/matthew/github/lightning_proto/test_dataset/"
 k_folds = 5
 
 # Trainer
@@ -40,10 +40,10 @@ for run in runs:
     logger = TensorBoardLogger('tb_logs', name=str(run))
 
     trainer = pl.Trainer(callbacks=callbacks,
-                         gpus=1,
-                         precision=16,
+                         # gpus=1,
+                         # precision=16,
                          max_epochs=max_epochs,
-                         limit_train_batches=0.01,
+                         # limit_train_batches=0.01,
                          logger=logger)
 
     trainer.fit(model, dm)
