@@ -22,5 +22,6 @@ Accepted arguments are outlined in `model2d.UNET`, `generator2d.DataModule`, and
 - Implement downloading and preparing data script from PyMedPhys in `generator2D.DataModule.prepare_data`.
 - Examine which callbacks pytorch_lightning handles automatically.
 - Translate existing TensorFlow code for inference.
+- Translate existing TensorFlow metrics code for custom loss functions.
 - Merge existing DICOM networking code for deployment.
 - Merge with PyMedPhys
