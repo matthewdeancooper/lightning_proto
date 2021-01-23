@@ -144,17 +144,6 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class DataModule(pl.LightningDataModule):
-    @staticmethod
-    def add_specific_args(parent_parser):
-        parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--data_dir', type=str, default='../test_dataset')
-        parser.add_argument('--batch_size', type=int, default=5)
-        parser.add_argument('--k_folds', type=int, default=5)
-        parser.add_argument('--k_fold_index', type=int, default=0)
-        parser.add_argument('--input_shape', type=tuple, default=(1, 512, 512))
-        parser.add_argument('--num_workers', type=int, default=12)
-        return parser
-
     def __init__(self,
                  data_dir,
                  batch_size,
@@ -172,6 +161,17 @@ class DataModule(pl.LightningDataModule):
         self.training_dataset = None
         self.validating_dataset = None
         self.testing_dataset = None
+
+    @staticmethod
+    def add_specific_args(parent_parser):
+        parser = ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument('--data_dir', type=str, default='../test_dataset')
+        parser.add_argument('--batch_size', type=int, default=5)
+        parser.add_argument('--k_folds', type=int, default=5)
+        parser.add_argument('--k_fold_index', type=int, default=0)
+        parser.add_argument('--input_shape', type=tuple, default=(1, 512, 512))
+        parser.add_argument('--num_workers', type=int, default=12)
+        return parser
 
     def prepare_data(self):
         # prepare_data (how to download(), tokenize, etc…)

@@ -52,6 +52,20 @@ def output_sequence(in_channels, out_channels):
 
 
 class UNet(pl.LightningModule):
+    def __init__(self, loss_function, optimizer, encoder_args, output_channels, learning_rate):
+        super().__init__()
+        print("\n-------------------------------------")
+        print("MODEL INITIALISATION:")
+
+        self.loss_function = eval(loss_function)
+        self.optimizer = eval(optimizer)
+        self.encoder_args = encoder_args
+        self.output_channels = output_channels
+        self.learning_rate = learning_rate
+        print("\nBuilding layers...")
+        self.init_layers()
+        print("\nINITIALISATION COMPLETED\n\n")
+
     @staticmethod
     def add_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
@@ -70,19 +84,6 @@ class UNet(pl.LightningModule):
         parser.add_argument('--learning_rate', type=float, default=1e-3)
         return parser
 
-    def __init__(self, loss_function, optimizer, encoder_args, output_channels, learning_rate):
-        super().__init__()
-        print("\n-------------------------------------")
-        print("MODEL INITIALISATION:")
-
-        self.loss_function = eval(loss_function)
-        self.optimizer = eval(optimizer)
-        self.encoder_args = encoder_args
-        self.output_channels = output_channels
-        self.learning_rate = learning_rate
-        print("\nBuilding layers...")
-        self.init_layers()
-        print("\nINITIALISATION COMPLETED\n\n")
 
     def init_layers(self):
         # Reverse each tuple in a reversed list. Exclude last element
