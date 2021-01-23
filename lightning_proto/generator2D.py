@@ -146,7 +146,7 @@ class DataModule(pl.LightningDataModule):
     @staticmethod
     def add_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--data_dir', type=str, default='/home/matthew/lightning_proto/test_dataset')
+        parser.add_argument('--data_dir', type=str, default='../test_dataset')
         parser.add_argument('--batch_size', type=int, default=5)
         parser.add_argument('--k_folds', type=int, default=5)
         parser.add_argument('--k_fold_index', type=int, default=0)
