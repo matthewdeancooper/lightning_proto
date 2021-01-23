@@ -176,16 +176,16 @@ class DataModule(pl.LightningDataModule):
         # prepare_data (how to download(), tokenize, etc…)
         # prepare_data is called from a single GPU
         print("\n-------------------------------------")
-        print("PREPARE DATA:")
-        print("Data preparation completed")
+        print("PREPARING DATA:")
+        print("\nPREPARATION COMPLETED\n")
         return None
 
     def setup(self):
         # Setup is called from multiple GPUs
         print("\n-------------------------------------")
-        print("SETUP DATA:")
+        print("SETTING UP DATA:")
 
-        print("Finding path data to split...")
+        print("\nFinding path data to split...")
 
         data_paths = Paths(self.data_dir, self.k_folds, self.k_fold_index)
         data_paths.setup()
@@ -206,8 +206,7 @@ class DataModule(pl.LightningDataModule):
                                        augment=False,
                                        input_shape=self.input_shape)
 
-        print("Data setup completed")
-        print("\n")
+        print("\nSETUP COMPLETED\n")
 
     def train_dataloader(self):
         return DataLoader(self.training_dataset,
