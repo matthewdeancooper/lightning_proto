@@ -16,3 +16,11 @@ python3 train.py --batch_size=10 --gpus=1 --precision=16
 ```
 
 Accepted arguments are outlined in `model2d.UNET`, `generator2d.DataModule`, and the pytorch_lightning `Trainer` module, found [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository.
+
+## TODO
+- Implement data augmentation in `augmentation2D`.
+- Implement downloading and preparing data script from PyMedPhys in `generator2D.DataModule.prepare_data`.
+- Examine which callbacks pytorch_lightning handles automatically.
+- Translate existing TensorFlow code for inference.
+- Merge existing DICOM networking code for deployment.
+- Merge with PyMedPhys
