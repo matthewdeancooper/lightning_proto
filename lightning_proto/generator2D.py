@@ -1,4 +1,5 @@
 import functools
+from argparse import ArgumentParser
 import glob
 from pathlib import Path
 
@@ -22,11 +23,9 @@ class Paths():
         self.testing_paths = None
 
     def print_split(self):
-        print("\n-------------------------------------")
-        print("Training paths:", len(self.training_paths[0]))
+        print("\nTraining paths:", len(self.training_paths[0]))
         print("Validating paths:", len(self.validating_paths[0]))
         print("Testing paths:", len(self.testing_paths[0]))
-        print("\n")
 
     def kfold(self):
         assert self.k_fold_index >= 0
@@ -107,10 +106,10 @@ class Paths():
 class Dataset(torch.utils.data.Dataset):
     'Characterizes a dataset for PyTorch'
 
-    def __init__(self, data_paths, augment, dims):
+    def __init__(self, data_paths, augment, input_shape):
         self.x_paths, self.y_paths = data_paths
         self.augment = augment
-        self.dims = dims
+        self.input_shape = input_shape
         self.assert_shape()
 
     def __len__(self):
@@ -133,7 +132,6 @@ class Dataset(torch.utils.data.Dataset):
 
         return x, y
 
-    # @functools.lru_cache(maxsize=None)
     def read_arrays(self, x_path, y_path):
         x = np.load(x_path).astype("float32")
         y = np.load(y_path).astype("float32")
@@ -141,23 +139,34 @@ class Dataset(torch.utils.data.Dataset):
 
     def assert_shape(self):
         for path in self.x_paths + self.y_paths:
-            assert np.load(path).shape == self.dims
+            assert np.load(path).shape == self.input_shape
 
 
 class DataModule(pl.LightningDataModule):
+    @staticmethod
+    def add_specific_args(parent_parser):
+        parser = ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument('--data_dir', type=str, default='/home/matthew/lightning_proto/test_dataset')
+        parser.add_argument('--batch_size', type=int, default=5)
+        parser.add_argument('--k_folds', type=int, default=5)
+        parser.add_argument('--k_fold_index', type=int, default=0)
+        parser.add_argument('--input_shape', type=tuple, default=(1, 512, 512))
+        parser.add_argument('--num_workers', type=int, default=12)
+        return parser
+
     def __init__(self,
                  data_dir,
                  batch_size,
                  k_folds,
                  k_fold_index,
-                 dims=(1, 512, 512),
-                 num_workers=12):
+                 input_shape,
+                 num_workers):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.k_folds = k_folds
         self.k_fold_index = k_fold_index
-        self.dims = dims
+        self.input_shape = input_shape
         self.num_workers = num_workers
         self.training_dataset = None
         self.validating_dataset = None
@@ -166,10 +175,18 @@ class DataModule(pl.LightningDataModule):
     def prepare_data(self):
         # prepare_data (how to download(), tokenize, etc…)
         # prepare_data is called from a single GPU
+        print("\n-------------------------------------")
+        print("PREPARE DATA:")
+        print("Data preparation completed")
         return None
 
     def setup(self):
         # Setup is called from multiple GPUs
+        print("\n-------------------------------------")
+        print("SETUP DATA:")
+
+        print("Finding path data to split...")
+
         data_paths = Paths(self.data_dir, self.k_folds, self.k_fold_index)
         data_paths.setup()
 
@@ -177,15 +194,20 @@ class DataModule(pl.LightningDataModule):
         validating_paths = data_paths.validating_paths
         testing_paths = data_paths.testing_paths
 
+        print("\nBuilding dataloaders...")
+
         self.training_dataset = Dataset(training_paths,
                                         augment=True,
-                                        dims=self.dims)
+                                        input_shape=self.input_shape)
         self.validating_dataset = Dataset(validating_paths,
                                           augment=False,
-                                          dims=self.dims)
+                                          input_shape=self.input_shape)
         self.testing_dataset = Dataset(testing_paths,
                                        augment=False,
-                                       dims=self.dims)
+                                       input_shape=self.input_shape)
+
+        print("Data setup completed")
+        print("\n")
 
     def train_dataloader(self):
         return DataLoader(self.training_dataset,
@@ -205,11 +227,10 @@ class DataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    batch_size = 10
-    data_dir = "/home/matthew/github/vacunet/tests/canine_imaging_dataset/"
-    k_folds = 4
-    k_fold_index = 0
+    parser = ArgumentParser()
+    parser = DataModule.add_specific_args(parser)
+    args = parser.parse_args()
 
-    dm = DataModule(data_dir, batch_size, k_folds, k_fold_index)
+    dm = DataModule.from_argparse_args(args)
     dm.prepare_data()
     dm.setup()
