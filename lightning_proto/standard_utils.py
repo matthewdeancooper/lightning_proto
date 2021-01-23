@@ -1,6 +1,10 @@
-from collections import namedtuple
-from itertools import product
+# from collections import namedtuple
+# from itertools import product
+import os
 
+def make_directory(directory_path):
+    if not os.path.exists(directory_path):
+        os.mkdir(directory_path)
 
 def flatten_list(parent, recursion=1):
     for index in range(recursion):
@@ -14,12 +18,11 @@ def copy_attrs(obj_from, obj_to, attr_names):
             attr = getattr(obj_from, attr_name)
             setattr(obj_to, attr_name, attr)
 
-
-class Combinations():
-    @staticmethod
-    def get_combinations(params):
-        combination = namedtuple('combination', params.keys())
-        combinations = []
-        for permutation in product(*params.values()):
-            combinations.append(combination(*permutation))
-        return combinations
+# class Combinations():
+#     @staticmethod
+#     def get_combinations(params):
+#         combination = namedtuple('combination', params.keys())
+#         combinations = []
+#         for permutation in product(*params.values()):
+#             combinations.append(combination(*permutation))
+#         return combinations

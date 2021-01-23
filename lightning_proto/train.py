@@ -1,14 +1,12 @@
-import gc
-
 import pytorch_lightning as pl
-import torch
-from pytorch_lightning.callbacks import (EarlyStopping, LearningRateMonitor,
-                                         ModelCheckpoint)
-from pytorch_lightning.loggers import TensorBoardLogger
-
 from generator2D import DataModule
 from model2D import UNet
 from argparse import ArgumentParser
+
+# import torch
+# from pytorch_lightning.callbacks import (EarlyStopping, LearningRateMonitor,
+#                                          ModelCheckpoint)
+# from pytorch_lightning.loggers import TensorBoardLogger
 
 
 def main(args):
