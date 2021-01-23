@@ -33,8 +33,16 @@ def main(args):
 
     # Trainer
     trainer = pl.Trainer.from_argparse_args(args)
+
+    print("\n-------------------------------------")
+    print("TRAINING::")
     trainer.fit(model, dm)
+    print("\nTRAINING COMPLETED\n")
+
+    print("\n-------------------------------------")
+    print("TESTING:")
     trainer.test(datamodule=dm)
+    print("\nTESTING COMPLETED\n")
 
 if __name__ == '__main__':
     # ArgumentParser
