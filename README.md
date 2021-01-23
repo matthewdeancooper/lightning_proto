@@ -15,7 +15,7 @@ Run the train.py file specifying any argument required. For example:
 python3 train.py --batch_size=10 --gpus=1 --precision=16
 ```
 
-Accepted arguments are outlined in `model2d.UNET`, `generator2d.DataModule`, and the pytorch_lightning `Trainer` module, found [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository.
+Accepted arguments are outlined in `model2d.UNET`, `generator2d.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository.
 
 ## TODO
 - Implement data augmentation in `augmentation2D`.
