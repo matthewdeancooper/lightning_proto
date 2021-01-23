@@ -26,6 +26,7 @@ def main(args):
                  args.learning_rate)
 
     # Callbacks
+    # TODO pytorch_lightning handles some automatically - investigate!
     # lr_monitor = LearningRateMonitor(logging_interval='epoch')
     # early_stopping = EarlyStopping('val_loss')
     # checkpoint = ModelCheckpoint(monitor='val_loss')

@@ -189,4 +189,5 @@ if __name__ == "__main__":
     input = torch.rand((batch_size, 1, 512, 512))
     output = model(input)
 
-    print(output.shape)
+    # TEST FOR DEFAULT ARGS
+    assert output.shape == (batch_size, 1, 512, 512)

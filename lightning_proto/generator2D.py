@@ -124,6 +124,7 @@ class Dataset(torch.utils.data.Dataset):
 
         x, y = self.read_arrays(x_path, y_path)
 
+        # TODO Implement augmentations
         if self.augment is True:
             x, y = augment(x, y)
 
@@ -233,3 +234,8 @@ if __name__ == "__main__":
     dm = DataModule.from_argparse_args(args)
     dm.prepare_data()
     dm.setup()
+
+    # TEST FOR DEFAULT ARGS
+    assert len(dm.training_dataset) == 1768
+    assert len(dm.validating_dataset) == 463
+    assert len(dm.testing_dataset) == 406
