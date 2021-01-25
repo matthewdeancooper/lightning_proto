@@ -1,8 +1,24 @@
-import pytorch_lightning as pl
+# Copyright (C) 2020 Matthew Cooper
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from argparse import ArgumentParser
+
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 def convolution_sequence(in_channels, out_channels, kernel_size, padding=1):
     sequence = nn.Sequential(
@@ -18,10 +34,7 @@ def encoder_sequence(in_channels, out_channels):
         convolution_sequence(in_channels, out_channels, kernel_size=3),
         nn.Dropout2d(p=0.2),
         convolution_sequence(out_channels, out_channels, kernel_size=3),
-        convolution_sequence(out_channels,
-                             out_channels,
-                             kernel_size=1,
-                             padding=0),
+        convolution_sequence(out_channels, out_channels, kernel_size=1, padding=0),
     )
     return sequence
 
@@ -37,22 +50,22 @@ def decoder_sequence(in_channels, out_channels):
 
 def transposer_sequence(in_channels, out_channels):
     sequence = nn.Sequential(
-        nn.ConvTranspose2d(in_channels,
-                           out_channels,
-                           kernel_size=2,
-                           stride=2,
-                           padding=0))
+        nn.ConvTranspose2d(
+            in_channels, out_channels, kernel_size=2, stride=2, padding=0
+        )
+    )
     return sequence
 
 
 def output_sequence(in_channels, out_channels):
-    sequence = nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size=1))
+    sequence = nn.Sequential(nn.Conv2d(in_channels, out_channels, kernel_size=1))
     return sequence
 
 
 class UNet(pl.LightningModule):
-    def __init__(self, loss_function, optimizer, encoder_args, output_channels, learning_rate):
+    def __init__(
+        self, loss_function, optimizer, encoder_args, output_channels, learning_rate
+    ):
         super().__init__()
         print("\n-------------------------------------")
         print("MODEL INITIALISATION:")
@@ -69,21 +82,25 @@ class UNet(pl.LightningModule):
     @staticmethod
     def add_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--loss_function', type=str, default='F.binary_cross_entropy_with_logits')
-        parser.add_argument('--optimizer', type=str, default='torch.optim.Adam')
-        parser.add_argument('--encoder_args', type=tuple, default=(
+        parser.add_argument(
+            "--loss_function", type=str, default="F.binary_cross_entropy_with_logits"
+        )
+        parser.add_argument("--optimizer", type=str, default="torch.optim.Adam")
+        parser.add_argument(
+            "--encoder_args",
+            type=tuple,
+            default=(
                 (1, 32),  # x
                 (32, 64),  # x/2
                 (64, 128),  # x/4
                 (128, 256),  # x/8
                 (256, 512),  # x/16
-                (512, 1024)  # /32
-            )
+                (512, 1024),  # /32
+            ),
         )
-        parser.add_argument('--output_channels', type=int, default=1)
-        parser.add_argument('--learning_rate', type=float, default=1e-3)
+        parser.add_argument("--output_channels", type=int, default=1)
+        parser.add_argument("--learning_rate", type=float, default=1e-3)
         return parser
-
 
     def init_layers(self):
         # Reverse each tuple in a reversed list. Exclude last element
@@ -118,8 +135,7 @@ class UNet(pl.LightningModule):
         skips.reverse()
 
         # Decoding x
-        for decoder, transposer, skip in zip(self.decoders, self.transposers,
-                                             skips):
+        for decoder, transposer, skip in zip(self.decoders, self.transposers, skips):
             x = transposer(x)
             x = torch.cat([x, skip], dim=1)
             x = decoder(x)
@@ -144,21 +160,21 @@ class UNet(pl.LightningModule):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log('loss', loss)
-        return {'loss':loss}
+        self.log("loss", loss)
+        return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log('val_loss', loss, on_epoch=True)
+        self.log("val_loss", loss, on_epoch=True)
         # return loss
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log('test_loss', loss, on_epoch=True)
+        self.log("test_loss", loss, on_epoch=True)
         # return loss
 
     # def train_epoch_end(self, outputs):
@@ -180,11 +196,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # NOTE UNet.from_argparse_args(args) not defined in Lightning Module
-    model = UNet(args.loss_function,
-                 args.optimizer,
-                 args.encoder_args,
-                 args.output_channels,
-                 args.learning_rate)
+    model = UNet(
+        args.loss_function,
+        args.optimizer,
+        args.encoder_args,
+        args.output_channels,
+        args.learning_rate,
+    )
 
     batch_size = 2
     input = torch.rand((batch_size, 1, 512, 512))

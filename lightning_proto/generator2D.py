@@ -1,6 +1,20 @@
+# Copyright (C) 2020 Matthew Cooper
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import functools
-from argparse import ArgumentParser
 import glob
+from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
@@ -12,7 +26,7 @@ from augmentation2D import augment
 from standard_utils import flatten_list
 
 
-class Paths():
+class Paths:
     def __init__(self, data_dir, k_folds, k_fold_index):
         self.data_dir = data_dir
         self.k_folds = k_folds
@@ -104,7 +118,7 @@ class Paths():
 
 
 class Dataset(torch.utils.data.Dataset):
-    'Characterizes a dataset for PyTorch'
+    "Characterizes a dataset for PyTorch"
 
     def __init__(self, data_paths, augment, input_shape):
         self.x_paths, self.y_paths = data_paths
@@ -113,12 +127,12 @@ class Dataset(torch.utils.data.Dataset):
         self.assert_shape()
 
     def __len__(self):
-        'Denotes the total number of samples'
+        "Denotes the total number of samples"
         assert len(self.x_paths) == len(self.y_paths)
         return len(self.x_paths)
 
     def __getitem__(self, index):
-        'Generates one sample of data'
+        "Generates one sample of data"
         x_path = self.x_paths[index]
         y_path = self.y_paths[index]
 
@@ -144,13 +158,8 @@ class Dataset(torch.utils.data.Dataset):
 
 
 class DataModule(pl.LightningDataModule):
-    def __init__(self,
-                 data_dir,
-                 batch_size,
-                 k_folds,
-                 k_fold_index,
-                 input_shape,
-                 num_workers):
+    def __init__(self, data_dir, batch_size, k_folds, k_fold_index,
+                 input_shape, num_workers):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -165,12 +174,12 @@ class DataModule(pl.LightningDataModule):
     @staticmethod
     def add_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('--data_dir', type=str, default='../test_dataset')
-        parser.add_argument('--batch_size', type=int, default=5)
-        parser.add_argument('--k_folds', type=int, default=5)
-        parser.add_argument('--k_fold_index', type=int, default=0)
-        parser.add_argument('--input_shape', type=tuple, default=(1, 512, 512))
-        parser.add_argument('--num_workers', type=int, default=12)
+        parser.add_argument("--data_dir", type=str, default="../test_dataset")
+        parser.add_argument("--batch_size", type=int, default=5)
+        parser.add_argument("--k_folds", type=int, default=5)
+        parser.add_argument("--k_fold_index", type=int, default=0)
+        parser.add_argument("--input_shape", type=tuple, default=(1, 512, 512))
+        parser.add_argument("--num_workers", type=int, default=12)
         return parser
 
     def prepare_data(self):
@@ -210,20 +219,26 @@ class DataModule(pl.LightningDataModule):
         print("\nSETUP COMPLETED\n")
 
     def train_dataloader(self):
-        return DataLoader(self.training_dataset,
-                          shuffle=True,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+        return DataLoader(
+            self.training_dataset,
+            shuffle=True,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
 
     def val_dataloader(self):
-        return DataLoader(self.validating_dataset,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+        return DataLoader(
+            self.validating_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
 
     def test_dataloader(self):
-        return DataLoader(self.testing_dataset,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+        return DataLoader(
+            self.testing_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
 
 
 if __name__ == "__main__":

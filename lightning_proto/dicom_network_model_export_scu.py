@@ -15,20 +15,20 @@
 
 import glob
 
-import config
-import dicom_helpers
 from pynetdicom import AE, debug_logger
 from pynetdicom.sop_class import CTImageStorage, RTStructureSetStorage
 
+import dicom_utils
 
-def export_files(dicom_paths, directory=False):
+
+def export_files(dicom_paths, scu_ip, scu_port, ae_title, directory=False):
     print("\n--------------------------")
     print("Structure storage SCU:")
     if directory:
         dicom_paths = glob.glob(dicom_paths + "/*.dcm")
         print("dicom_paths", len(dicom_paths))
 
-    dicom_files = dicom_helpers.read_dicom_paths(dicom_paths)
+    dicom_files = dicom_utils.read_dicom_paths(dicom_paths)
     print("dicom_files", len(dicom_files))
 
     # Initialise the Application Entity
@@ -39,7 +39,7 @@ def export_files(dicom_paths, directory=False):
     ae.add_requested_context(RTStructureSetStorage)
 
     # Associate with peer AE
-    assoc = ae.associate(config.SCU_IP, config.SCU_PORT, ae_title=config.SCU_AE_TITLE)
+    assoc = ae.associate(scu_ip, scu_port, ae_title)
     if assoc.is_established:
         # Use the C-STORE service to send the dataset
         # returns the response status as a pydicom Dataset

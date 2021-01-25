@@ -1,5 +1,3 @@
-# TODO Translate TF code to Torch
-
 # Copyright (C) 2020 Matthew Cooper
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,65 +12,103 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dicom_utils
+import glob
+from argparse import ArgumentParser
 
+import mask
 import numpy as np
 
+import dicom_create_rs_file
+import dicom_network_model_export_scu as scu
+import dicom_utils
+from model2D import UNet
 
-# def standardise_array(data_array, mean, standard_deviation):
-#     return (data_array - mean) / standard_deviation
+
+def load_model(weights_path, hparams_path):
+    model = UNet.load_from_metrics(weights_path=weights_path,
+                                   tags_csv=hparams_path)
+    model.freeze()
+    return model
 
 
-def predict_to_contour(dicom, prediction):
-    # TODO This can be written better
+def load_inputs(dicom_series):
+    pixel_arrays = dicom_utils.get_pixel_arrays(dicom_series)
+    # TODO shape (n, x, y) to (n, 1, x, y) for Torch input
+    # pixel_arrays = pixel_arrays[np.newaxis, ...]
+
+    # TODO Normalise arrays
+
+    return pixel_arrays
+
+
+def predict_to_structure(dicom, prediction):
+    # TODO requires PyMedPhys mask import
     x_grid, y_grid, ct_size = mask.get_grid(dicom)
     z_position = float(dicom.SliceLocation)
-    slice_contours = mask.get_contours_from_mask(x_grid, y_grid, prediction[..., 0])
+    slice_contours = mask.get_contours_from_mask(x_grid, y_grid,
+                                                 prediction[..., 0])
 
-    # [x1 y1 x2 y2 ... ] to [x1 y1 z x2 y2 z ...] for DICOM input
-    slice_contours_xyz = []
+    # [x1 y1 x2 y2 ... ] to [x1 y1 z x2 y2 z ...]
+    slice_structure_xyz = []
     for roi in slice_contours:
         roi_xyz = []
         for xy_point in roi:
             xyz_point = [*xy_point, z_position]
             roi_xyz = roi_xyz + xyz_point
-        slice_contours_xyz.append(roi_xyz)
+        slice_structure_xyz.append(roi_xyz)
+    return slice_structure_xyz
 
-    return slice_contours_xyz
+
+def convert_to_dicom_rs(dicom_series, predictions, root_uid, save=True):
+    structures = []
+    for dicom, prediction in zip(dicom_series, predictions):
+        structure = predict_to_structure(dicom, prediction)
+        structures.append(structure)
+    assert len(structures) == len(dicom_series)
+
+    dicom_structure_file = dicom_create_rs_file.create_rs_file(
+        dicom_series, structures, root_uid)
+
+    return dicom_structure_file
 
 
-def get_predictions(dicom_series):
-    # model = unet.Network(output_channels=config.MODEL_OUTPUT_CHANNELS)
+def infer_contours(study_path,
+                   root_uid,
+                   weights_path,
+                   hparams_path,
+                   convert_to_dicom=True,
+                   save=True):
 
-    # model.compile()
+    dicom_paths = glob.glob(study_path + "/*.dcm")
+    dicom_files = dicom_utils.read_dicom_paths(dicom_paths)
+    dicom_series, *rest = dicom_utils.filter_dicom_files(dicom_files)
+    dicom_series = dicom_utils.sort_slice_location(dicom_series)
 
-    # model.load_weights(config.MODEL_WEIGHTS)
+    pixel_arrays = load_inputs(dicom_series)
 
-    pixel_arrays = dicom_utils.get_pixel_arrays(dicom_series)
+    model = load_model(weights_path, hparams_path)
+    model_output = np.array([model(x) for x in pixel_arrays])
+    predictions = np.round(model_output)
 
-    # shape (n, x, y) to (n, x, y, 1) for Torch input
-    pixel_arrays = pixel_arrays[np.newaxis, ....]
+    dicom_structure_file = convert_to_dicom_rs()
 
-    # pixel_arrays = standardise_array(
-    #     pixel_arrays, config.TRAINING_DATA_MEAN, config.TRAINING_DATA_STD
-    # )
+    # For RT structure file instance
+    if save:
+        save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
+                     "_model.dcm")
+        dicom_structure_file.save_as(save_path, write_like_original=False)
 
-    # predictions = model.predict(pixel_arrays, batch_size=config.BATCH_SIZE, verbose=0)
+    return dicom_structure_file, save_path
 
-    predictions = np.round(predictions)
-
-    return predictions
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser = DataModule.add_specific_args(parser)
-    args = parser.parse_args()
+    study_path = "../test_dataset/13950_cleaned/"
+    root_uid = "1"
+    weights_path = "../test_model/test_weights"
+    hparams_path = "../test_model/test_hparams"
+    dicom_structure_file, save_path = infer_contours(study_path, root_uid,
+                                                     weights_path,
+                                                     hparams_path)
 
-    dm = DataModule.from_argparse_args(args)
-    dm.prepare_data()
-    dm.setup()
-
-    # TEST FOR DEFAULT ARGS
-    assert len(dm.training_dataset) == 1768
-    assert len(dm.validating_dataset) == 463
-    assert len(dm.testing_dataset) == 406
+    dicom_utils.print_dicom_files(dicom_structure_file)
+    print(save_path)

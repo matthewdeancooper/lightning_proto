@@ -15,9 +15,11 @@
 
 import difflib
 import glob
-import standard_utils
+
 import numpy as np
 import pydicom
+
+import standard_utils
 
 
 def read_dicom_paths(dicom_paths, force=False):

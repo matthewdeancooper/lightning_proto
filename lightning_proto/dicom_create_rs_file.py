@@ -21,12 +21,7 @@ import pydicom._storage_sopclass_uids
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.sequence import Sequence
 
-
-def copy_attrs(obj_from, obj_to, names):
-    for n in names:
-        if hasattr(obj_from, n):
-            attr = getattr(obj_from, n)
-            setattr(obj_to, n, attr)
+import standard_utils
 
 
 def get_file_meta(dcm, root_uid):
@@ -36,9 +31,8 @@ def get_file_meta(dcm, root_uid):
     file_meta.MediaStorageSOPClassUID = (
         pydicom._storage_sopclass_uids.RTStructureSetStorage
     )
-    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid(
-        root_uid
-    )  # TODO Generate this properly
+    # TODO Generate this properly
+    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid(root_uid)
     file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
 
     # From dicom imaging file
@@ -48,14 +42,7 @@ def get_file_meta(dcm, root_uid):
         "ImplementationVersionName",
     ]
 
-    copy_attrs(dcm.file_meta, file_meta, imaging_meta)
-
-    # file_meta.FileMetaInformationVersion = dcm.file_meta.FileMetaInformationVersion
-    # file_meta.ImplementationClassUID = (
-    #     dcm.file_meta.ImplementationClassUID
-    # )  # TODO Check this is true on non-anon data
-    # file_meta.ImplementationVersionName = dcm.file_meta.ImplementationVersionName
-
+    standard_utils.copy_attrs(dcm.file_meta, file_meta, imaging_meta)
     return file_meta
 
 
@@ -99,21 +86,7 @@ def add_top_level(ds, dcm):
         "ManufacturerModelName",
     ]
 
-    copy_attrs(dcm, ds, imaging_attrs)
-
-    # try:
-    #     ds.StudyDate = dcm.StudyDate
-    #     ds.StudyTime = dcm.StudyTime
-    #     ds.AccessionNumber = dcm.AccessionNumber
-    #     ds.ReferringPhysicianName = dcm.ReferringPhysicianName
-    #     ds.PatientName = dcm.PatientName
-    #     ds.PatientID = dcm.PatientID
-    #     ds.PatientBirthDate = dcm.PatientBirthDate
-    #     ds.PatientSex = dcm.PatientSex
-    #     ds.StudyInstanceUID = dcm.StudyInstanceUID
-    #     ds.StudyID = dcm.StudyID
-    # except AttributeError:
-    #     print("Missing some top level attributes from dcm file")
+    standard_utils.copy_attrs(dcm, ds, imaging_attrs)
 
     # ds.InstanceCreatorUID = "Anonymous"  # TODO
     # ds.InstitutionalDepartmentName = "Anonymous"  # TODO
@@ -238,9 +211,7 @@ def add_roi_contour_sequence(ds, dcms, contours):
 
                 contour1.ContourData = roi
 
-                contour1.NumberOfContourPoints = (
-                    len(contour1.ContourData) // 3
-                )  # TODO Test this is this case
+                contour1.NumberOfContourPoints = len(contour1.ContourData) // 3
                 contour_sequence.append(contour1)
 
     roi_contour1.ReferencedROINumber = "1"

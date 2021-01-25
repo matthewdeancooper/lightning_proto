@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import time
 from collections import deque
 
@@ -23,12 +22,15 @@ matplotlib.use("Agg")
 
 import threading
 
-import config
-import os_helpers
-import vacunet
-from pynetdicom import AE, ALL_TRANSFER_SYNTAXES, AllStoragePresentationContexts, evt
+from pynetdicom import (AE, ALL_TRANSFER_SYNTAXES,
+                        AllStoragePresentationContexts, evt)
+
+import dicom_network_model_export_scu as scu
+import inference
+import standard_utils
 
 lock = threading.Lock()
+import argparse
 
 
 def handle_accepted(event):
@@ -36,7 +38,7 @@ def handle_accepted(event):
         dicom_store[event.assoc] = []
 
 
-def handle_store(event):
+def handle_store(event, storage_path):
     """Handle EVT_C_STORE events."""
 
     with lock:
@@ -44,8 +46,8 @@ def handle_store(event):
         ds.file_meta = event.file_meta
 
         # Path for the study
-        study_path = config.SCP_STORAGE_PATH + "/" + ds.StudyInstanceUID
-        os_helpers.make_directory(study_path)
+        study_path = storage_path + "/" + ds.StudyInstanceUID
+        standard_utils.make_directory(study_path)
 
         # Add study path to storage dictionary
         dicom_store[event.assoc].append(study_path)
@@ -75,21 +77,28 @@ def handle_release(event):
     return 0x0000
 
 
-def inference_loop():
+def inference_loop(root_uid, scu_ip, port, export_series):
     while True:
         time.sleep(1)
 
         if inference_queue:
-            vacunet.vacunet(inference_queue[0], config.ROOT_UID)
+            study_path = inference_queue[0]
+            _, save_path = inference.infer_contours(study_path, root_uid)
+
+            # Return the imaging series too?
+            if export_series:
+                scu.export_files(study_path, scu_ip, port, directory=True)
+            else:
+                scu.export_files([save_path], scu_ip, port, directory=False)
 
             print("\n--------------------------")
             print("INFERENCE COMPLETED:")
-            print(inference_queue[0])
+            print(study_path)
 
             inference_queue.popleft()
             print_inference_queue()
             if not inference_queue:
-                print_listening()
+                print_listening(port)
 
 
 def print_inference_queue():
@@ -100,48 +109,59 @@ def print_inference_queue():
         print("Position", index, "-", path)
 
 
-def print_listening():
+def print_listening(port):
     print("\n==========================")
-    print("Listening for association request on port:", config.SCP_PORT)
+    print("Listening for association request on port:", port)
 
 
-def main():
-
-    global inference_queue
-    inference_queue = deque()
-
-    global dicom_store
-    dicom_store = {}
+def main(storage_path, scp_ip, scu_ip, port, root_uid, export_series):
 
     # Parent folder to all storage requests
-    os_helpers.make_directory(config.SCP_STORAGE_PATH)
+    standard_utils.make_directory(storage_path)
 
     ae = AE()
     ae.network_timeout = None
     ae.acse_timeout = None
     ae.dimse_timeout = None
     ae.maximum_pdu_size = 0
-    ae.maximum_associations = 14  # Tested with 14 threads
+    ae.maximum_associations = 12  # Tested with 12 threads
 
     handlers = [
         (evt.EVT_ACCEPTED, handle_accepted),
-        (evt.EVT_C_STORE, handle_store),
+        (evt.EVT_C_STORE, handle_store, [storage_path]),
         (evt.EVT_RELEASED, handle_release),
     ]
 
-    storage_sop_classes = [cx.abstract_syntax for cx in AllStoragePresentationContexts]
+    storage_sop_classes = [
+        cx.abstract_syntax for cx in AllStoragePresentationContexts
+    ]
 
     for uid in storage_sop_classes:
         ae.add_supported_context(uid, ALL_TRANSFER_SYNTAXES)
 
-    ae.start_server(
-        (config.SCP_IP, config.SCP_PORT), block=False, evt_handlers=handlers
-    )
+    ae.start_server((scp_ip, port), block=False, evt_handlers=handlers)
 
-    print_listening()
+    print_listening(port)
 
-    inference_loop()
+    inference_loop(root_uid, scu_ip, port, export_series)
 
 
 if __name__ == "__main__":
-    main()
+    global inference_queue
+    inference_queue = deque()
+
+    global dicom_store
+    dicom_store = {}
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--storage_path",
+                        type=str,
+                        default="dicom_storage_requests")
+    parser.add_argument("--scp_ip", type=str, default="127.0.0.1")
+    parser.add_argument("--scu_ip", type=str, default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=11112)
+    parser.add_argument("--root_uid", type=str, default="")
+    parser.add_argument("--export_series", type=str, default="True")
+    args = parser.parse_args()
+
+    main(**vars(args))

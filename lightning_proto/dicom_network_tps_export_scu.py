@@ -1,3 +1,17 @@
+# Copyright (C) 2020 Matthew Cooper
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import glob
 
 import config
@@ -8,7 +22,7 @@ from pynetdicom.sop_class import CTImageStorage
 debug_logger()
 
 
-def main(data_path):
+def export_files(data_path, scp_ip, scp_port):
     dicom_paths = glob.glob(data_path + "/*.dcm")
     print("dicom_paths", len(dicom_paths))
 
@@ -22,7 +36,7 @@ def main(data_path):
     ae.add_requested_context(CTImageStorage)
 
     # Associate with peer AE at IP 127.0.0.1 and port 11112
-    assoc = ae.associate(config.SCP_IP, config.SCP_PORT)
+    assoc = ae.associate(scp_ip, scp_port)
     if assoc.is_established:
         # Use the C-STORE service to send the dataset
         # returns the response status as a pydicom Dataset
@@ -42,5 +56,6 @@ def main(data_path):
         print("Association rejected, aborted or never connected")
 
 
-if __name__ == "__main__":
-    main(config.TEST_DATASET)
+# if __name__ == "__main__":
+#     dataset = 'None'
+#     export_files(dataset)
