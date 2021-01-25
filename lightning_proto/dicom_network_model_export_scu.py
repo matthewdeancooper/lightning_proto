@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import glob
 
 from pynetdicom import AE, debug_logger
@@ -21,7 +20,10 @@ from pynetdicom.sop_class import CTImageStorage, RTStructureSetStorage
 import dicom_utils
 
 
-def export_files(dicom_paths, scu_ip, scu_port, ae_title, directory=False):
+def export_files(dicom_paths, scu_ip, scu_port, directory=True):
+    # Initialise the Application Entity
+    ae = AE()
+
     print("\n--------------------------")
     print("Structure storage SCU:")
     if directory:
@@ -31,15 +33,12 @@ def export_files(dicom_paths, scu_ip, scu_port, ae_title, directory=False):
     dicom_files = dicom_utils.read_dicom_paths(dicom_paths)
     print("dicom_files", len(dicom_files))
 
-    # Initialise the Application Entity
-    ae = AE()
-
     # Add a requested presentation context
     ae.add_requested_context(CTImageStorage)
     ae.add_requested_context(RTStructureSetStorage)
 
     # Associate with peer AE
-    assoc = ae.associate(scu_ip, scu_port, ae_title)
+    assoc = ae.associate(scu_ip, scu_port)
     if assoc.is_established:
         # Use the C-STORE service to send the dataset
         # returns the response status as a pydicom Dataset
@@ -49,11 +48,16 @@ def export_files(dicom_paths, scu_ip, scu_port, ae_title, directory=False):
             # Check the status of the storage request
             if status:
                 # If the storage request succeeded this will be 0x0000
-                print("C-STORE request status: 0x{0:04x}".format(status.Status))
+                print("C-STORE request status: 0x{0:04x}".format(
+                    status.Status))
             else:
-                print("Connection timed out, was aborted or received invalid response")
+                print(
+                    "Connection timed out, was aborted or received invalid response"
+                )
 
         # Release the association
         assoc.release()
     else:
-        print("Structure storage SCU association rejected, aborted or never connected")
+        print(
+            "Structure storage SCU association rejected, aborted or never connected"
+        )

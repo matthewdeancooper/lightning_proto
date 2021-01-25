@@ -77,7 +77,7 @@ def handle_release(event):
     return 0x0000
 
 
-def inference_loop(root_uid, scu_ip, port, export_series):
+def inference_loop(root_uid, scu_ip, scu_port, export_series):
     while True:
         time.sleep(1)
 
@@ -87,9 +87,13 @@ def inference_loop(root_uid, scu_ip, port, export_series):
 
             # Return the imaging series too?
             if export_series:
-                scu.export_files(study_path, scu_ip, port, directory=True)
+                scu.export_files(study_path, scu_ip, scu_port, directory=True)
+            # Return the structure file only
             else:
-                scu.export_files([save_path], scu_ip, port, directory=False)
+                scu.export_files([save_path],
+                                 scu_ip,
+                                 scu_port,
+                                 directory=False)
 
             print("\n--------------------------")
             print("INFERENCE COMPLETED:")
@@ -98,7 +102,7 @@ def inference_loop(root_uid, scu_ip, port, export_series):
             inference_queue.popleft()
             print_inference_queue()
             if not inference_queue:
-                print_listening(port)
+                print_listening()
 
 
 def print_inference_queue():
@@ -109,12 +113,13 @@ def print_inference_queue():
         print("Position", index, "-", path)
 
 
-def print_listening(port):
+def print_listening():
     print("\n==========================")
-    print("Listening for association request on port:", port)
+    print("Listening for association requests...")
 
 
-def main(storage_path, scp_ip, scu_ip, port, root_uid, export_series):
+def main(storage_path, scp_ip, scp_port, scu_ip, scu_port, root_uid,
+         export_series):
 
     # Parent folder to all storage requests
     standard_utils.make_directory(storage_path)
@@ -139,11 +144,11 @@ def main(storage_path, scp_ip, scu_ip, port, root_uid, export_series):
     for uid in storage_sop_classes:
         ae.add_supported_context(uid, ALL_TRANSFER_SYNTAXES)
 
-    ae.start_server((scp_ip, port), block=False, evt_handlers=handlers)
+    ae.start_server((scp_ip, scp_port), block=False, evt_handlers=handlers)
 
-    print_listening(port)
+    print_listening()
 
-    inference_loop(root_uid, scu_ip, port, export_series)
+    inference_loop(root_uid, scu_ip, scu_port, export_series)
 
 
 if __name__ == "__main__":
@@ -158,9 +163,12 @@ if __name__ == "__main__":
                         type=str,
                         default="dicom_storage_requests")
     parser.add_argument("--scp_ip", type=str, default="127.0.0.1")
+    parser.add_argument("--scp_port", type=int, default=11112)
     parser.add_argument("--scu_ip", type=str, default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=11112)
-    parser.add_argument("--root_uid", type=str, default="")
+    parser.add_argument("--scu_port", type=int, default=11112)
+    parser.add_argument("--root_uid",
+                        type=str,
+                        default="1.2.826.0.1.3680043.8.498.")
     parser.add_argument("--export_series", type=str, default="True")
     args = parser.parse_args()
 

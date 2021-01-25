@@ -15,12 +15,13 @@
 import glob
 from argparse import ArgumentParser
 
-import mask
+# import mask
 import numpy as np
 
 import dicom_create_rs_file
 import dicom_network_model_export_scu as scu
 import dicom_utils
+import mask
 from model2D import UNet
 
 
@@ -33,16 +34,15 @@ def load_model(weights_path, hparams_path):
 
 def load_inputs(dicom_series):
     pixel_arrays = dicom_utils.get_pixel_arrays(dicom_series)
-    # TODO shape (n, x, y) to (n, 1, x, y) for Torch input
-    # pixel_arrays = pixel_arrays[np.newaxis, ...]
-
-    # TODO Normalise arrays
-
+    # Shape (n, x, y) to (n, 1, x, y) for Torch input
+    pixel_arrays = np.expand_dims(pixel_arrays, axis=1)
+    # Normalise
+    pixel_arrays = (pixel_arrays -
+                    np.mean(pixel_arrays)) / np.std(pixel_arrays)
     return pixel_arrays
 
 
 def predict_to_structure(dicom, prediction):
-    # TODO requires PyMedPhys mask import
     x_grid, y_grid, ct_size = mask.get_grid(dicom)
     z_position = float(dicom.SliceLocation)
     slice_contours = mask.get_contours_from_mask(x_grid, y_grid,
@@ -103,7 +103,7 @@ def infer_contours(study_path,
 
 if __name__ == "__main__":
     study_path = "../test_dataset/13950_cleaned/"
-    root_uid = "1"
+    root_uid = "1.2.826.0.1.3680043.8.498."
     weights_path = "../test_model/test_weights"
     hparams_path = "../test_model/test_hparams"
     dicom_structure_file, save_path = infer_contours(study_path, root_uid,
