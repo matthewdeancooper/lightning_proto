@@ -17,6 +17,7 @@ from argparse import ArgumentParser
 
 # import mask
 import numpy as np
+import torch
 
 import dicom_create_rs_file
 import dicom_network_model_export_scu as scu
@@ -25,9 +26,8 @@ import mask
 from model2D import UNet
 
 
-def load_model(weights_path, hparams_path):
-    model = UNet.load_from_metrics(weights_path=weights_path,
-                                   tags_csv=hparams_path)
+def load_model(checkpoint_path):
+    model = UNet.load_from_checkpoint(checkpoint_path=checkpoint_path)
     model.freeze()
     return model
 
@@ -39,6 +39,8 @@ def load_inputs(dicom_series):
     # Normalise
     pixel_arrays = (pixel_arrays -
                     np.mean(pixel_arrays)) / np.std(pixel_arrays)
+    pixel_arrays = pixel_arrays.astype("float32")
+    pixel_arrays = torch.from_numpy(pixel_arrays)
     return pixel_arrays
 
 
@@ -59,7 +61,7 @@ def predict_to_structure(dicom, prediction):
     return slice_structure_xyz
 
 
-def convert_to_dicom_rs(dicom_series, predictions, root_uid, save=True):
+def convert_to_dicom_rs(dicom_series, predictions, root_uid):
     structures = []
     for dicom, prediction in zip(dicom_series, predictions):
         structure = predict_to_structure(dicom, prediction)
@@ -74,41 +76,48 @@ def convert_to_dicom_rs(dicom_series, predictions, root_uid, save=True):
 
 def infer_contours(study_path,
                    root_uid,
-                   weights_path,
-                   hparams_path,
+                   checkpoint_path,
                    convert_to_dicom=True,
                    save=True):
 
     dicom_paths = glob.glob(study_path + "/*.dcm")
-    dicom_files = dicom_utils.read_dicom_paths(dicom_paths)
+    dicom_files = dicom_utils.read_dicom_paths(dicom_paths, force=True)
+    dicom_files = dicom_utils.add_transfer_syntax(dicom_files)
     dicom_series, *rest = dicom_utils.filter_dicom_files(dicom_files)
     dicom_series = dicom_utils.sort_slice_location(dicom_series)
 
     pixel_arrays = load_inputs(dicom_series)
 
-    model = load_model(weights_path, hparams_path)
-    model_output = np.array([model(x) for x in pixel_arrays])
+    model = load_model(checkpoint_path)
+    
+    model_output = []
+    for x in pixel_arrays:
+        x = x[np.newaxis,...]
+        output = model(x)
+        model_output.append(output)
+
+    model_output = np.array(model_output)
+
+    # model_output = np.array([model(x) for x in pixel_arrays[:]])
     predictions = np.round(model_output)
 
-    dicom_structure_file = convert_to_dicom_rs()
+    dicom_structure_file = convert_to_dicom_rs(dicom_series, predictions, root_uid)
 
     # For RT structure file instance
-    if save:
-        save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
-                     "_model.dcm")
-        dicom_structure_file.save_as(save_path, write_like_original=False)
+    #if save:
+    #    save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
+    #                 "_model.dcm")
+    #    dicom_structure_file.save_as(save_path, write_like_original=False)
 
-    return dicom_structure_file, save_path
+    #return dicom_structure_file, save_path
 
 
 if __name__ == "__main__":
-    study_path = "../test_dataset/13950_cleaned/"
+    study_path = "../test_dicom_dataset/13950"
     root_uid = "1.2.826.0.1.3680043.8.498."
-    weights_path = "../test_model/test_weights"
-    hparams_path = "../test_model/test_hparams"
+    checkpoint_path = "../test_model/checkpoint.ckpt"
     dicom_structure_file, save_path = infer_contours(study_path, root_uid,
-                                                     weights_path,
-                                                     hparams_path)
+                                                     checkpoint_path)
 
     dicom_utils.print_dicom_files(dicom_structure_file)
     print(save_path)

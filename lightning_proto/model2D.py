@@ -77,7 +77,9 @@ class UNet(pl.LightningModule):
         self.learning_rate = learning_rate
         print("\nBuilding layers...")
         self.init_layers()
+        self.save_hyperparameters()
         print("\nINITIALISATION COMPLETED\n\n")
+        
 
     @staticmethod
     def add_specific_args(parent_parser):
