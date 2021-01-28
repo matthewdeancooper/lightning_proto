@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import glob
-from argparse import ArgumentParser
 
-# import mask
 import numpy as np
 
 import dicom_create_rs_file
@@ -59,7 +57,7 @@ def predict_to_structure(dicom, prediction):
     return slice_structure_xyz
 
 
-def convert_to_dicom_rs(dicom_series, predictions, root_uid, save=True):
+def convert_to_dicom_rs(dicom_series, predictions, root_uid):
     structures = []
     for dicom, prediction in zip(dicom_series, predictions):
         structure = predict_to_structure(dicom, prediction)
@@ -90,12 +88,11 @@ def infer_contours(study_path,
     model_output = np.array([model(x) for x in pixel_arrays])
     predictions = np.round(model_output)
 
-    dicom_structure_file = convert_to_dicom_rs()
+    dicom_structure_file = convert_to_dicom_rs(dicom_series, predictions,
+                                               root_uid)
 
-    # For RT structure file instance
     if save:
-        save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
-                     "_model.dcm")
+        save_path = study_path + "/" + dicom_structure_file.SOPInstanceUID + "_model.dcm"
         dicom_structure_file.save_as(save_path, write_like_original=False)
 
     return dicom_structure_file, save_path
