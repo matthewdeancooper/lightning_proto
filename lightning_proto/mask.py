@@ -15,7 +15,7 @@
 import warnings
 
 import numpy as np
-from pymedphys._imports import plt, skimage
+#from pymedphys._imports import plt, skimage
 
 
 def get_image_transformation_parameters(dcm_ct):
