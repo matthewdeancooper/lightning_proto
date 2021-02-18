@@ -1,6 +1,7 @@
 # lightning_prototype
 
-* Assumes data pipeline assumes data is organised as in the test_dataset folder.
+* Assumes data pipeline assumes data is organised as in the test_dataset folder.  
+  `test_dataset/<patient>/img/<index>.npy` matches with `test_dataset/<patient>/mask/<index>.npy`
 
 Activate a python virtual environment
 ```bash
