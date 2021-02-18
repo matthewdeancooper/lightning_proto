@@ -1,5 +1,7 @@
 # lightning_prototype
 
+* Assumes data pipeline assumes data is organised as in the test_dataset folder.
+
 Activate a python virtual environment
 ```bash
 python3 -m venv env
