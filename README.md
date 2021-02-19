@@ -1,5 +1,7 @@
 # lightning_prototype
 
+<img src="readme_model_output.png" width="600">
+
 * Training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training.   
   The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`.
 * Inference pipeline assumes data is a directory path to a DICOM imaging series. Each image in a series will be converted to a array for inference.
