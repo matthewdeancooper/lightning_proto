@@ -80,6 +80,8 @@ python3 dicom_network_model_import_scp.py
   3. Create an RT Structure file
   4. Call `dicom_network_model_export_scu.py`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged) back to the treatment planning system (or to any other port and IP address)
 
+This networking protocol can be applied between multiple clinics via ssh - as drawn below; or, within a single clinic via a localhost address
+
 <p align="center">
   <img src="readme_inference.png" width="700">
 </p>
