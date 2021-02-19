@@ -4,7 +4,7 @@
 
 * The training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training.  
  
-  The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`.
+  The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`, each with shape (1, 512, 512). Different grid sizes can be specified, however, this 2D implementation supports only 1 input channel.
   
 * The inference pipeline assumes the data is a path to a directory containing a DICOM imaging series. Each image in a series will be converted to a array for inference.
 
@@ -28,7 +28,7 @@ Run the `train.py` file specifying any argument required. For example:
 python3 train.py --batch_size=10 --gpus=1 --precision=16
 ```
 
-Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open Canine CT dataset from clinical radiotherapy cases. Other datasets can be specified as an argument above via `--data_dir`. 
+Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open Canine CT dataset from clinical radiotherapy cases. Other datasets can be specified as an argument above via `--data_dir`.
 
 Module: `generator2D.DataModule`  
 ```python
