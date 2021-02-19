@@ -23,6 +23,8 @@ pip install -r requirements.txt
 
 ## Training
 
+PytorchLightning will handle saving the best model and its parameters, as well as logging to tensorboard by default.
+
 Run the `train.py` file specifying any argument required. For example:
 ```bash
 python3 train.py --batch_size=10 --gpus=1 --precision=16
@@ -30,7 +32,10 @@ python3 train.py --batch_size=10 --gpus=1 --precision=16
 
 Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open Canine CT dataset from clinical radiotherapy cases. Other datasets can be specified as an argument above via `--data_dir`.
 
+The following arguments can all be passed directly via the command line interface to `train.py` as shown above.
+
 Module: `generator2D.DataModule`  
+Note the option to specify k-folding for each run.
 ```python
 class DataModule(pl.LightningDataModule):
     @staticmethod
@@ -44,6 +49,8 @@ class DataModule(pl.LightningDataModule):
         parser.add_argument("--num_workers", type=int, default=12)
         return parser
 ```
+
+
 
 Module: `model2D.UNet` 
 ```python
@@ -59,7 +66,7 @@ class UNet(pl.LightningModule):
         return parser
 
 ```
-These arguments can all be passed directly via the command line interface to `train.py` as shown above.
+
 
 ## Inference
 To be implemented...
