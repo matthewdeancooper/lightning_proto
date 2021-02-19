@@ -120,10 +120,12 @@ class Paths:
 class Dataset(torch.utils.data.Dataset):
     "Characterizes a dataset for PyTorch"
 
-    def __init__(self, data_paths, augment, input_shape):
+    def __init__(self, data_paths, augment, input_shape, output_shape=None):
         self.x_paths, self.y_paths = data_paths
         self.augment = augment
         self.input_shape = input_shape
+        if output_shape is None:
+            self.output_shape = input_shape
         self.assert_shape()
 
     def __len__(self):
@@ -153,11 +155,24 @@ class Dataset(torch.utils.data.Dataset):
         return x, y
 
     def assert_shape(self):
-        for path in self.x_paths + self.y_paths:
+        for path in self.x_paths:
             assert np.load(path).shape == self.input_shape
+        for path in self.y_paths:
+            assert np.load(path).shape == self.output_shape
 
 
 class DataModule(pl.LightningDataModule):
+    @staticmethod
+    def add_specific_args(parent_parser):
+        parser = ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument("--data_dir", type=str, default="../test_dataset")
+        parser.add_argument("--batch_size", type=int, default=5)
+        parser.add_argument("--k_folds", type=int, default=5)
+        parser.add_argument("--k_fold_index", type=int, default=0)
+        parser.add_argument("--input_shape", type=tuple, default=(1, 512, 512))
+        parser.add_argument("--num_workers", type=int, default=12)
+        return parser
+
     def __init__(self, data_dir, batch_size, k_folds, k_fold_index,
                  input_shape, num_workers):
         super().__init__()
@@ -171,29 +186,17 @@ class DataModule(pl.LightningDataModule):
         self.validating_dataset = None
         self.testing_dataset = None
 
-    @staticmethod
-    def add_specific_args(parent_parser):
-        parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument("--data_dir", type=str, default="../test_dataset")
-        parser.add_argument("--batch_size", type=int, default=5)
-        parser.add_argument("--k_folds", type=int, default=5)
-        parser.add_argument("--k_fold_index", type=int, default=0)
-        parser.add_argument("--input_shape", type=tuple, default=(1, 512, 512))
-        parser.add_argument("--num_workers", type=int, default=12)
-        return parser
-
     def prepare_data(self):
         # prepare_data (how to download(), tokenize, etc…)
         # prepare_data is called from a single GPU
         print("\n-------------------------------------")
-        print("PREPARING DATA:")
-        print("\nPREPARATION COMPLETED\n")
+        print("\nDataModule: prepare_data() - Running")
+        print("\nDataModule: prepare_data() - Completed")
         return None
 
     def setup(self):
         # Setup is called from multiple GPUs
-        print("\n-------------------------------------")
-        print("SETTING UP DATA:")
+        print("\nDataModule: setup() - Running")
 
         print("\nFinding path data to split...")
 
@@ -216,7 +219,7 @@ class DataModule(pl.LightningDataModule):
                                        augment=False,
                                        input_shape=self.input_shape)
 
-        print("\nSETUP COMPLETED\n")
+        print("\nDataModule: setup() - Completed")
 
     def train_dataloader(self):
         return DataLoader(
@@ -251,6 +254,8 @@ if __name__ == "__main__":
     dm.setup()
 
     # TEST FOR DEFAULT ARGS
+    print("\nDataModule: Tests - Running")
     assert len(dm.training_dataset) == 1768
     assert len(dm.validating_dataset) == 463
     assert len(dm.testing_dataset) == 406
+    print("\nDataModule: Tests - Completed")

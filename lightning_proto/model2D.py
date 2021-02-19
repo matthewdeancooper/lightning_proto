@@ -20,106 +20,122 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def convolution_sequence(in_channels, out_channels, kernel_size, padding=1):
-    sequence = nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding),
-        nn.BatchNorm2d(out_channels),
-        nn.ReLU(),
-    )
-    return sequence
-
-
-def encoder_sequence(in_channels, out_channels):
-    sequence = nn.Sequential(
-        convolution_sequence(in_channels, out_channels, kernel_size=3),
-        nn.Dropout2d(p=0.2),
-        convolution_sequence(out_channels, out_channels, kernel_size=3),
-        convolution_sequence(out_channels,
-                             out_channels,
-                             kernel_size=1,
-                             padding=0),
-    )
-    return sequence
-
-
-def decoder_sequence(in_channels, out_channels):
-    sequence = nn.Sequential(
-        convolution_sequence(in_channels, out_channels, kernel_size=3),
-        nn.Dropout2d(p=0.4),
-        convolution_sequence(out_channels, out_channels, kernel_size=3),
-    )
-    return sequence
-
-
-def transposer_sequence(in_channels, out_channels):
-    sequence = nn.Sequential(
-        nn.ConvTranspose2d(in_channels,
-                           out_channels,
-                           kernel_size=2,
-                           stride=2,
-                           padding=0))
-    return sequence
-
-
-def output_sequence(in_channels, out_channels):
-    sequence = nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size=1))
-    return sequence
-
-
 class UNet(pl.LightningModule):
-    def __init__(self, loss_function, optimizer, encoder_channels, output_channels,
-                 learning_rate):
-        super().__init__()
-        print("\n-------------------------------------")
-        print("MODEL INITIALISATION:")
-
-        self.loss_function = eval(loss_function)
-        self.optimizer = eval(optimizer)
-        self.encoder_channels = encoder_channels
-        self.output_channels = output_channels
-        self.learning_rate = learning_rate
-        print("\nBuilding layers...")
-        self.init_layers()
-        self.save_hyperparameters()
-        print("\nINITIALISATION COMPLETED\n\n")
-
     @staticmethod
     def add_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--loss_function",
                             type=str,
-                            default="F.binary_cross_entropy_with_logits")
-        parser.add_argument("--optimizer",
-                            type=str,
-                            default="torch.optim.Adam")
-        parser.add_argument("--encoder_channels", type=tuple, default=(32, 64, 128, 256, 512, 1024)),
-        parser.add_argument("--output_channels", type=int, default=1)
+                            default=F.binary_cross_entropy_with_logits)
+        parser.add_argument("--optimizer", type=str, default=torch.optim.Adam)
+        parser.add_argument("--encoder_args",
+                            type=tuple,
+                            default=(32, 64, 128, 256, 512, 1024)),
+        parser.add_argument("--output_channels", type=int, default=1),
         parser.add_argument("--learning_rate", type=float, default=1e-3)
         return parser
 
-    def init_layers(self):
-        # Reverse each tuple in a reversed list. Exclude last element
-        self.decoder_channels = self.build_decoder_channels()
-        self.out_args = (self.decoder_channels[-1][-1], self.output_channels)
+    def __init__(self, loss_function, optimizer, encoder_args, output_channels,
+                 learning_rate):
+        super().__init__()
+        print("\n-------------------------------------")
+        print("\nLightningModule: __init__() - Running")
+        self.loss_function = loss_function
+        self.optimizer = optimizer
+        self.encoder_args = encoder_args
+        self.output_channels = output_channels
+        self.learning_rate = learning_rate
+        print("\nBuilding layers...")
+        self.build_layers()
+        self.save_hyperparameters()
+        print("\nLightningModule: __init__() - Completed")
+
+    def build_layers(self):
+        def _build_encoder_channels(encoder_args):
+            input_arguments = 1, *encoder_args[:-1]
+            return tuple(zip(input_arguments, encoder_args))
+
+        def _build_decoder_channels(encoder_args):
+            decoder_args = tuple(reversed(encoder_args))
+            return tuple(zip(decoder_args[:-1], decoder_args[1:]))
+
+        def _convolution_sequence(in_channels,
+                                  out_channels,
+                                  kernel_size,
+                                  padding=1):
+            sequence = nn.Sequential(
+                nn.Conv2d(in_channels,
+                          out_channels,
+                          kernel_size,
+                          padding=padding),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(),
+            )
+            return sequence
+
+        def _encoder_sequence(in_channels, out_channels):
+            sequence = nn.Sequential(
+                _convolution_sequence(in_channels, out_channels,
+                                      kernel_size=3),
+                nn.Dropout2d(p=0.2),
+                _convolution_sequence(out_channels,
+                                      out_channels,
+                                      kernel_size=3),
+                _convolution_sequence(out_channels,
+                                      out_channels,
+                                      kernel_size=1,
+                                      padding=0),
+            )
+            return sequence
+
+        def _decoder_sequence(in_channels, out_channels):
+            sequence = nn.Sequential(
+                _convolution_sequence(in_channels, out_channels,
+                                      kernel_size=3),
+                nn.Dropout2d(p=0.4),
+                _convolution_sequence(out_channels,
+                                      out_channels,
+                                      kernel_size=3),
+            )
+            return sequence
+
+        def _transposer_sequence(in_channels, out_channels):
+            sequence = nn.Sequential(
+                nn.ConvTranspose2d(in_channels,
+                                   out_channels,
+                                   kernel_size=2,
+                                   stride=2,
+                                   padding=0))
+            return sequence
+
+        def _output_sequence(in_channels, out_channels):
+            sequence = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=1))
+            return sequence
 
         # Build encoder layers
+        encoder_channels = _build_encoder_channels(self.encoder_args)
+        print("\nEncoder channels")
+        print(encoder_channels)
         self.encoders = nn.ModuleList()
-        for args in self.encoder_channels:
-            self.encoders.append(encoder_sequence(*args))
+        for args in encoder_channels:
+            self.encoders.append(_encoder_sequence(*args))
 
         # Build transposers and decoders layers
+        decoder_channels = _build_decoder_channels(self.encoder_args)
+        print("\nDecoder channels")
+        print(decoder_channels)
         self.transposers = nn.ModuleList()
         self.decoders = nn.ModuleList()
-        for args in self.decoder_channels:
-            self.transposers.append(transposer_sequence(*args))
-            self.decoders.append(decoder_sequence(*args))
+        for args in decoder_channels:
+            self.transposers.append(_transposer_sequence(*args))
+            self.decoders.append(_decoder_sequence(*args))
 
         # Build output layer
-        self.output = output_sequence(*self.out_args)
-
-    def build_decoder_channels(self):
-        return decoder_channels
+        output_channels = (decoder_channels[-1][-1], self.output_channels)
+        print("\nOutput channels")
+        print(output_channels)
+        self.output = _output_sequence(*output_channels)
 
     def forward(self, x):
         skips = []
@@ -127,7 +143,7 @@ class UNet(pl.LightningModule):
         # Encoding x
         for encoder in self.encoders:
             x = encoder(x)
-            if len(skips) < len(self.decoder_channels):
+            if len(skips) < len(self.decoders):
                 skips.append(x)
                 x = nn.MaxPool2d(kernel_size=2)(x)
 
@@ -182,13 +198,14 @@ if __name__ == "__main__":
     model = UNet(
         args.loss_function,
         args.optimizer,
-        args.encoder_channels,
+        args.encoder_args,
         args.output_channels,
         args.learning_rate,
     )
 
+    print("\nLightningModule: Tests - Running")
     batch_size = 5
     test_input = torch.rand((batch_size, 1, 512, 512))
     test_output = model(test_input)
     assert test_output.shape == test_input.shape
-    print("Test passed")
+    print("\nLightningModule: Tests - Completed")
