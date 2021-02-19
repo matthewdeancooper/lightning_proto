@@ -90,7 +90,7 @@ python dicom_network_model_import_scp.py
 ```
 
 `dicom_network_model_import_scp.py` is a DICOM service class provider (Storage and inference SCP) that will:
-  1. Accept storage requests for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port and IP address
+  1. Accept storage requests to `--storage_path` for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port `--scp_port` and IP address `--scp_ip` 
   2. Produce inference from the model
   3. Create an RT Structure file (Currently only a single structure is supported - "Vacbag", but this will change soon!)
   4. Call `dicom_network_model_export_scu.py`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged) back to the treatment planning system (or to any other port and IP address)
