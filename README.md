@@ -68,7 +68,7 @@ class UNet(pl.LightningModule):
 ```
 
 
-## Deployment
+## Deployment - via a DICOM server
 Deployment is acheived via the DICOM networking protocol and can be initiated via the command:
 ```bash
 python3 dicom_network_model_import_scp.py
