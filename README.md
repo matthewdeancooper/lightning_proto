@@ -26,3 +26,4 @@ python3 train.py --batch_size=10 --gpus=1 --precision=16
 Accepted arguments are outlined in `model2D.UNET`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository.
 
 ## Inference
+To be implemented...
