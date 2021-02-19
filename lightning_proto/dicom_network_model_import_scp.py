@@ -130,7 +130,8 @@ def print_listening():
 def main(storage_path, checkpoint_path, scp_ip, scp_port, scu_ip, scu_port,
          root_uid, export):
 
-    checkpoint_path = "/home/matthew/lightning_proto/lightning_proto/lightning_logs/version_1/checkpoints/epoch=0-step=128.ckpt"
+    # For testing
+    # checkpoint_path = "/home/matthew/lightning_proto/lightning_proto/lightning_logs/version_1/checkpoints/epoch=0-step=128.ckpt"
 
     # Parent folder to all storage requests
     standard_utils.make_directory(storage_path)
