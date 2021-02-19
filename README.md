@@ -87,3 +87,5 @@ This networking protocol can be applied between multiple clinics via ssh - as dr
 <p align="center">
   <img src="readme_inference.png" width="700">
 </p>
+
+An end-to-end network test can be acheived simulating export from the TPS via the `dicom_network_tps_export_scu.py` file
