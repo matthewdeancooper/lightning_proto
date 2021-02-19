@@ -55,7 +55,7 @@ class UNet(pl.LightningModule):
         return parser
 
 ```
-These arguments can all be passed directly via the command line interface to `train.py` shown above.
+These arguments can all be passed directly via the command line interface to `train.py` as shown above.
 
 ## Inference
 To be implemented...
