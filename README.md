@@ -30,7 +30,7 @@ Run the `train.py` file specifying any argument required. For example:
 python3 train.py --batch_size=10 --gpus=1 --precision=16
 ```
 
-Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open Canine CT dataset from clinical radiotherapy cases. Other datasets can be specified as an argument above via `--data_dir`.
+Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open contoured canine CT dataset from clinical radiotherapy cases. Other datasets can be specified as an argument above via `--data_dir`.
 
 The following arguments can all be passed directly via the command line interface to `train.py` as shown above.
 
