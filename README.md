@@ -6,7 +6,7 @@
  
   The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`.
   
-* Inference pipeline assumes data is a directory path to a DICOM imaging series. Each image in a series will be converted to a array for inference.
+* The inference pipeline assumes the data is a path to a directory containing a DICOM imaging series. Each image in a series will be converted to a array for inference.
 
 ## Setup
 
