@@ -95,16 +95,18 @@ def inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export):
             # Local save of the structure file with imaging series
             dicom_structure_file.save_as(save_path, write_like_original=False)
 
-            if export is not None:
+            if export == "all":
                 # # Return the imaging series too?
-                if export == "series":
-                    scu.export_files(study_path, scu_ip, scu_port, directory=True)
+                scu.export_files(study_path, scu_ip, scu_port, directory=True)
                 # Return the structure file only
-                else:
+            elif export == "structures":
                     scu.export_files([save_path],
                                     scu_ip,
                                     scu_port,
                                     directory=False)
+            else:
+                # Don't export only local saved
+                pass
 
             print("\n--------------------------")
             print("INFERENCE COMPLETED:")
