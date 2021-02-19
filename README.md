@@ -1,7 +1,8 @@
 # lightning_prototype
 
-* Assumes data pipeline assumes data is organised as in the test_dataset folder.  
-  `test_dataset/<patient>/img/<index>.npy` matches with `test_dataset/<patient>/mask/<index>.npy`
+* Training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training.   
+  The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`.
+* Inference pipeline assumes data is a directory path to a DICOM imaging series. Each image in a series will be converted to a array for inference.
 
 ## Setup
 
@@ -26,3 +27,4 @@ python3 train.py --batch_size=10 --gpus=1 --precision=16
 Accepted arguments are outlined in `model2D.UNET`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository.
 
 ## Inference
+To be implemented...
