@@ -77,13 +77,17 @@ def handle_release(event):
     return 0x0000
 
 
-def inference_loop(root_uid, scu_ip, scu_port, export_series):
+def inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export_series):
     while True:
         time.sleep(1)
 
         if inference_queue:
             study_path = inference_queue[0]
-            _, save_path = inference.infer_contours(study_path, root_uid)
+            _, save_path = inference.infer_contours(
+                study_path,
+                root_uid,
+                checkpoint_path,
+            )
 
             # Return the imaging series too?
             if export_series:
@@ -118,8 +122,8 @@ def print_listening():
     print("Listening for association requests...")
 
 
-def main(storage_path, scp_ip, scp_port, scu_ip, scu_port, root_uid,
-         export_series):
+def main(storage_path, checkpoint_path, scp_ip, scp_port, scu_ip, scu_port,
+         root_uid, export_series):
 
     # Parent folder to all storage requests
     standard_utils.make_directory(storage_path)
@@ -148,7 +152,7 @@ def main(storage_path, scp_ip, scp_port, scu_ip, scu_port, root_uid,
 
     print_listening()
 
-    inference_loop(root_uid, scu_ip, scu_port, export_series)
+    inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export_series)
 
 
 if __name__ == "__main__":
@@ -162,6 +166,9 @@ if __name__ == "__main__":
     parser.add_argument("--storage_path",
                         type=str,
                         default="dicom_storage_requests")
+    parser.add_argument("--checkpoint_path",
+                        type=str,
+                        default="../test_model/checkpoint.ckpt")
     parser.add_argument("--scp_ip", type=str, default="127.0.0.1")
     parser.add_argument("--scp_port", type=int, default=11112)
     parser.add_argument("--scu_ip", type=str, default="127.0.0.1")

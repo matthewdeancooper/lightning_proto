@@ -26,6 +26,7 @@ from model2D import UNet
 
 def load_model(checkpoint_path):
     model = UNet.load_from_checkpoint(checkpoint_path=checkpoint_path)
+    model = model.eval().cuda(device=0)
     model.freeze()
     return model
 
@@ -45,8 +46,10 @@ def load_inputs(dicom_series):
 def predict_to_structure(dicom, prediction):
     x_grid, y_grid, ct_size = mask.get_grid(dicom)
     z_position = float(dicom.SliceLocation)
+    # Drop the batch index [1, 1, x_grid, y_grid] -> [1, x_grid, y_grid]
+    # NOTE prediction[..., 0] for TensorFlow
     slice_contours = mask.get_contours_from_mask(x_grid, y_grid,
-                                                 prediction[..., 0])
+                                                 prediction[0, ...])
 
     # [x1 y1 x2 y2 ... ] to [x1 y1 z x2 y2 z ...]
     slice_structure_xyz = []
@@ -68,7 +71,6 @@ def convert_to_dicom_rs(dicom_series, predictions, root_uid):
 
     dicom_structure_file = dicom_create_rs_file.create_rs_file(
         dicom_series, structures, root_uid)
-
     return dicom_structure_file
 
 
@@ -89,35 +91,30 @@ def infer_contours(study_path,
     model = load_model(checkpoint_path)
 
     model_output = []
-    for x in pixel_arrays:
+    for i, x in enumerate(pixel_arrays):
         x = x[np.newaxis, ...]
-        output = model(x)
-        model_output.append(output)
+        output = model(x.cuda(0))
+        model_output.append(output.cpu().numpy())
 
     model_output = np.array(model_output)
-
-    # model_output = np.array([model(x) for x in pixel_arrays[:]])
     predictions = np.round(model_output)
+    print(predictions.shape)
 
     dicom_structure_file = convert_to_dicom_rs(dicom_series, predictions,
                                                root_uid)
 
-    # For RT structure file instance
-    #if save:
-    #    save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
-    #                 "_model.dcm")
-    #    dicom_structure_file.save_as(save_path, write_like_original=False)
+    # # For RT structure file instance
+    if save:
+        save_path = (study_path + dicom_structure_file.SOPInstanceUID +
+                     "_model.dcm")
+        dicom_structure_file.save_as(save_path, write_like_original=False)
 
-    #return dicom_structure_file, save_path
-    return dicom_structure_file
+    return dicom_structure_file, save_path
 
 
 if __name__ == "__main__":
-    study_path = "../test_dicom_dataset/13950"
+    study_path = "../test_dicom_dataset/"
     root_uid = "1.2.826.0.1.3680043.8.498."
-    checkpoint_path = "../test_model/checkpoint.ckpt"
+    checkpoint_path = "/home/matthew/lightning_proto/lightning_proto/lightning_logs/version_1/checkpoints/epoch=0-step=128.ckpt"
     dicom_structure_file, save_path = infer_contours(study_path, root_uid,
                                                      checkpoint_path)
-
-    dicom_utils.print_dicom_files(dicom_structure_file)
-    print(save_path)
