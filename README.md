@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme_model_output.png" width="600">
+  <img src="readme_model_output.png" width="700">
 </p>
 
 * Training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training.   
