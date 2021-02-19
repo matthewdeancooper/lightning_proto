@@ -1,6 +1,8 @@
 # lightning_prototype
 
-<img src="readme_model_output.png" width="600">
+<p align="center">
+  <img src="readme_model_output.png" width="600">
+</p>
 
 * Training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training.   
   The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`.
