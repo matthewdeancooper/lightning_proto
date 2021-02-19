@@ -76,6 +76,19 @@ Deployment is acheived via the DICOM networking protocol and can be initiated vi
 python dicom_network_model_import_scp.py
 ```
 
+* Module: `python dicom_network_model_import_scp` 
+```python
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--storage_path", type=str, default="dicom_storage_requests")
+    parser.add_argument("--scp_ip", type=str, default="127.0.0.1")
+    parser.add_argument("--scp_port", type=int, default=11112)
+    parser.add_argument("--scu_ip", type=str, default="127.0.0.1")
+    parser.add_argument("--scu_port", type=int, default=11112)
+    parser.add_argument("--root_uid", type=str, default="1.2.826.0.1.3680043.8.498.")
+    parser.add_argument("--export_series", type=str, default="True")
+    args = parser.parse_args()
+```
+
 `dicom_network_model_import_scp.py` is a DICOM service class provider (Storage and inference SCP) that will:
   1. Accept storage requests for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port and IP address
   2. Produce inference from the model
