@@ -1,5 +1,3 @@
-# lightning_prototype
-
 <p align="center">
   <img src="readme_model_output.png" width="600">
 </p>
