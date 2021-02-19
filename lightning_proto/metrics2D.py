@@ -12,4 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO
+import torch.nn.functional as F
+
+
+def bce_with_logits(args):
+    F.binary_cross_entropy_with_logits(args)
+
+
+loss_dict = {"bce_with_logits": bce_with_logits}
+
+
+def loss_lookup(name):
+    loss_dict.get(name, lambda: 'Invalid')

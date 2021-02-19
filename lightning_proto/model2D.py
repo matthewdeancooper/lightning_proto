@@ -19,6 +19,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from metrics2D import loss_lookup
+
 
 class UNet(pl.LightningModule):
     @staticmethod
@@ -26,7 +28,7 @@ class UNet(pl.LightningModule):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--loss_function",
                             type=str,
-                            default=F.binary_cross_entropy_with_logits)
+                            default="bce_with_logits")
         parser.add_argument("--optimizer", type=str, default=torch.optim.Adam)
         parser.add_argument("--encoder_args",
                             type=tuple,
@@ -40,7 +42,7 @@ class UNet(pl.LightningModule):
         super().__init__()
         print("\n-------------------------------------")
         print("\nLightningModule: __init__() - Running")
-        self.loss_function = loss_function
+        self.loss_function = loss_lookup(loss_function)
         self.optimizer = optimizer
         self.encoder_args = encoder_args
         self.output_channels = output_channels
