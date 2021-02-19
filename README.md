@@ -86,7 +86,7 @@ python dicom_network_model_import_scp.py
     parser.add_argument("--scu_ip", type=str, default="127.0.0.1")
     parser.add_argument("--scu_port", type=int, default=11112)
     parser.add_argument("--root_uid", type=str, default="1.2.826.0.1.3680043.8.498.")
-    parser.add_argument("--export_series", type=str, default="True")
+    parser.add_argument("--export", type=str, default=None)
     args = parser.parse_args()
 ```
 
@@ -94,7 +94,7 @@ python dicom_network_model_import_scp.py
   1. Accept storage requests to `--storage_path` for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port `--scp_port` and SCP IP address `--scp_ip` 
   2. Produce inference from the model `--checkpoint_path`
   3. Create an RT Structure file (Currently only a single structure is supported - "Vacbag", but this will change soon!)
-  4. Call `dicom_network_model_export_scu.py`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged `--export_series`) back to the treatment planning system (or to any other SCU port `--scu_port` and SCU IP address `--scu_ip`)
+  4. Call `dicom_network_model_export_scu.py` if flagged `--export`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged `--export="all"` or `--export="structures`) back to the treatment planning system (or to any other SCU port `--scu_port` and SCU IP address `--scu_ip`)
 
 This networking protocol can be applied between multiple clinics via ssh - as drawn below; or, within a single clinic via a localhost address
 
