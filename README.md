@@ -24,7 +24,7 @@ Run the train.py file specifying any argument required. For example:
 python3 train.py --batch_size=10 --gpus=1 --precision=16
 ```
 
-Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository. These can all be passed directly via the command line interface to `train.py` shown above.
+Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository. 
 
 File:`generator2D.DataModule`  
 ```python
@@ -55,6 +55,7 @@ class UNet(pl.LightningModule):
         return parser
 
 ```
+These arguments can all be passed directly via the command line interface to `train.py` shown above.
 
 ## Inference
 To be implemented...
