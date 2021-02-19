@@ -80,6 +80,7 @@ python dicom_network_model_import_scp.py
 ```python
     parser = argparse.ArgumentParser()
     parser.add_argument("--storage_path", type=str, default="dicom_storage_requests")
+    parser.add_argument("--checkpoint_path", type=str, default="../test_model/checkpoint.ckpt")
     parser.add_argument("--scp_ip", type=str, default="127.0.0.1")
     parser.add_argument("--scp_port", type=int, default=11112)
     parser.add_argument("--scu_ip", type=str, default="127.0.0.1")
@@ -91,7 +92,7 @@ python dicom_network_model_import_scp.py
 
 `dicom_network_model_import_scp.py` is a DICOM service class provider (Storage and inference SCP) that will:
   1. Accept storage requests to `--storage_path` for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port `--scp_port` and SCP IP address `--scp_ip` 
-  2. Produce inference from the model
+  2. Produce inference from the model `--checkpoint_path`
   3. Create an RT Structure file (Currently only a single structure is supported - "Vacbag", but this will change soon!)
   4. Call `dicom_network_model_export_scu.py`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged `--export_series`) back to the treatment planning system (or to any other SCU port `--scu_port` and SCU IP address `--scu_ip`)
 
