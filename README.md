@@ -63,3 +63,7 @@ These arguments can all be passed directly via the command line interface to `tr
 
 ## Inference
 To be implemented...
+
+<p align="center">
+  <img src="readme_inference.png" width="700">
+</p>
