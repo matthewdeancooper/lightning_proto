@@ -1,7 +1,8 @@
 # lightning_prototype
 
-* Assumes data pipeline assumes data is organised as in the test_dataset folder.  
+* Training pipeline assumes data is organised as in the test_dataset folder. The DataModule handles paths, which are read to arrays per batch for training. 
   `test_dataset/<patient>/img/<index>.npy` matches with `test_dataset/<patient>/mask/<index>.npy`
+* Inference pipeline assumes data is a directory path to a DICOM imaging series.  
 
 ## Setup
 
