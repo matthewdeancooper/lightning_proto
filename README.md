@@ -29,7 +29,7 @@ PytorchLightning will handle saving the best model and its parameters, as well a
 
 Run the `train.py` file specifying any argument required. For example:
 ```bash
-python3 train.py --batch_size=5 --gpus=1 --precision=16
+python train.py --batch_size=5 --gpus=1 --precision=16
 ```
 
 Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and the pytorch_lightning `Trainer` module, [hyperlinked here](https://pytorch-lightning.readthedocs.io/en/stable/_modules/pytorch_lightning/trainer/trainer.html). The default dataset used is the `test_dataset` included in this repository - an open canine CT dataset with vacuum bags contoured for clinical radiotherapy. Other datasets can be specified as an argument above via `--data_dir`.
@@ -73,7 +73,7 @@ class UNet(pl.LightningModule):
 ## Deployment - via a DICOM server
 Deployment is acheived via the DICOM networking protocol and can be initiated via the command:
 ```bash
-python3 dicom_network_model_import_scp.py
+python dicom_network_model_import_scp.py
 ```
 
 `dicom_network_model_import_scp.py` is a DICOM service class provider (Storage and inference SCP) that will:
