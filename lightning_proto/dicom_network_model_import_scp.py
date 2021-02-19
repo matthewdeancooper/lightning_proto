@@ -77,33 +77,39 @@ def handle_release(event):
     return 0x0000
 
 
-def inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export_series):
+def inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export):
     while True:
         time.sleep(1)
 
         if inference_queue:
-            study_path = inference_queue[0]
-            _, save_path = inference.infer_contours(
+            study_path = inference_queue.popleft()
+            dicom_structure_file = inference.infer_contours(
                 study_path,
                 root_uid,
                 checkpoint_path,
             )
 
-            # Return the imaging series too?
-            if export_series:
-                scu.export_files(study_path, scu_ip, scu_port, directory=True)
-            # Return the structure file only
-            else:
-                scu.export_files([save_path],
-                                 scu_ip,
-                                 scu_port,
-                                 directory=False)
+            save_path = (study_path + "/" + dicom_structure_file.SOPInstanceUID +
+                         "_model.dcm")
+
+            # Local save of the structure file with imaging series
+            dicom_structure_file.save_as(save_path, write_like_original=False)
+
+            if export is not None:
+                # # Return the imaging series too?
+                if export == "series":
+                    scu.export_files(study_path, scu_ip, scu_port, directory=True)
+                # Return the structure file only
+                else:
+                    scu.export_files([save_path],
+                                    scu_ip,
+                                    scu_port,
+                                    directory=False)
 
             print("\n--------------------------")
             print("INFERENCE COMPLETED:")
             print(study_path)
 
-            inference_queue.popleft()
             print_inference_queue()
             if not inference_queue:
                 print_listening()
@@ -112,7 +118,6 @@ def inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export_series):
 def print_inference_queue():
     print("\n--------------------------")
     print("INFERENCE QUEUE:", len(inference_queue))
-    print("Unique elements:", len(set(inference_queue)))
     for index, path in enumerate(inference_queue):
         print("Position", index, "-", path)
 
@@ -123,7 +128,9 @@ def print_listening():
 
 
 def main(storage_path, checkpoint_path, scp_ip, scp_port, scu_ip, scu_port,
-         root_uid, export_series):
+         root_uid, export):
+
+    checkpoint_path = "/home/matthew/lightning_proto/lightning_proto/lightning_logs/version_1/checkpoints/epoch=0-step=128.ckpt"
 
     # Parent folder to all storage requests
     standard_utils.make_directory(storage_path)
@@ -152,7 +159,7 @@ def main(storage_path, checkpoint_path, scp_ip, scp_port, scu_ip, scu_port,
 
     print_listening()
 
-    inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export_series)
+    inference_loop(checkpoint_path, root_uid, scu_ip, scu_port, export)
 
 
 if __name__ == "__main__":
@@ -176,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument("--root_uid",
                         type=str,
                         default="1.2.826.0.1.3680043.8.498.")
-    parser.add_argument("--export_series", type=str, default="True")
+    parser.add_argument("--export", type=str, default=None)
     args = parser.parse_args()
 
     main(**vars(args))

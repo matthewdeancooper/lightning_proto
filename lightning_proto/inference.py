@@ -77,8 +77,7 @@ def convert_to_dicom_rs(dicom_series, predictions, root_uid):
 def infer_contours(study_path,
                    root_uid,
                    checkpoint_path,
-                   convert_to_dicom=True,
-                   save=True):
+                   convert_to_dicom=True):
 
     dicom_paths = glob.glob(study_path + "/*.dcm")
     dicom_files = dicom_utils.read_dicom_paths(dicom_paths, force=True)
@@ -98,23 +97,18 @@ def infer_contours(study_path,
 
     model_output = np.array(model_output)
     predictions = np.round(model_output)
-    print(predictions.shape)
 
-    dicom_structure_file = convert_to_dicom_rs(dicom_series, predictions,
-                                               root_uid)
-
-    # # For RT structure file instance
-    if save:
-        save_path = (study_path + dicom_structure_file.SOPInstanceUID +
-                     "_model.dcm")
-        dicom_structure_file.save_as(save_path, write_like_original=False)
-
-    return dicom_structure_file, save_path
+    if convert_to_dicom:
+        dicom_structure_file = convert_to_dicom_rs(dicom_series, predictions,
+                                                   root_uid)
+        return dicom_structure_file
+    else:
+        return predictions
 
 
 if __name__ == "__main__":
     study_path = "../test_dicom_dataset/"
     root_uid = "1.2.826.0.1.3680043.8.498."
     checkpoint_path = "/home/matthew/lightning_proto/lightning_proto/lightning_logs/version_1/checkpoints/epoch=0-step=128.ckpt"
-    dicom_structure_file, save_path = infer_contours(study_path, root_uid,
-                                                     checkpoint_path)
+    dicom_structure_file = infer_contours(study_path, root_uid,
+                                          checkpoint_path)

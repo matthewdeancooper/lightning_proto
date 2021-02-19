@@ -14,10 +14,10 @@
 
 import glob
 
-import config
-import dicom_helpers
 from pynetdicom import AE, debug_logger
 from pynetdicom.sop_class import CTImageStorage
+
+import dicom_utils
 
 debug_logger()
 
@@ -26,8 +26,10 @@ def export_files(data_path, scp_ip, scp_port):
     dicom_paths = glob.glob(data_path + "/*.dcm")
     print("dicom_paths", len(dicom_paths))
 
-    dicom_files = dicom_helpers.read_dicom_paths(dicom_paths)
-    print("dicom_files", len(dicom_files))
+    dicom_files = dicom_utils.read_dicom_paths(dicom_paths, force=True)
+    dicom_files = dicom_utils.add_transfer_syntax(dicom_files)
+    dicom_series, *rest = dicom_utils.filter_dicom_files(dicom_files)
+    print("dicom_series", len(dicom_series))
 
     # Initialise the Application Entity
     ae = AE()
@@ -40,15 +42,18 @@ def export_files(data_path, scp_ip, scp_port):
     if assoc.is_established:
         # Use the C-STORE service to send the dataset
         # returns the response status as a pydicom Dataset
-        for ds in dicom_files:
+        for ds in dicom_series:
             status = assoc.send_c_store(ds)
 
             # Check the status of the storage request
             if status:
                 # If the storage request succeeded this will be 0x0000
-                print("C-STORE request status: 0x{0:04x}".format(status.Status))
+                print("C-STORE request status: 0x{0:04x}".format(
+                    status.Status))
             else:
-                print("Connection timed out, was aborted or received invalid response")
+                print(
+                    "Connection timed out, was aborted or received invalid response"
+                )
 
         # Release the association
         assoc.release()
@@ -56,6 +61,8 @@ def export_files(data_path, scp_ip, scp_port):
         print("Association rejected, aborted or never connected")
 
 
-# if __name__ == "__main__":
-#     dataset = 'None'
-#     export_files(dataset)
+if __name__ == "__main__":
+    data_path = "../test_dicom_dataset/"
+    scp_ip = "127.0.0.1"
+    scp_port = 11112
+    export_files(data_path, scp_ip, scp_port)
