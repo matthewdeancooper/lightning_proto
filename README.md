@@ -34,7 +34,7 @@ Accepted arguments are outlined in `model2D.UNet`, `generator2D.DataModule`, and
 
 The following arguments can all be passed directly via the command line interface to `train.py` as shown above.
 
-Module: `generator2D.DataModule`  
+* Module: `generator2D.DataModule`  
 Note the option to specify k-folding for each run.
 ```python
 class DataModule(pl.LightningDataModule):
@@ -52,7 +52,7 @@ class DataModule(pl.LightningDataModule):
 
 
 
-Module: `model2D.UNet` 
+* Module: `model2D.UNet` 
 ```python
 class UNet(pl.LightningModule):
     @staticmethod
