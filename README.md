@@ -69,9 +69,12 @@ class UNet(pl.LightningModule):
 
 
 ## Deployment
-Deployment is acheived via the DICOM networking protocol.
+Deployment is acheived via the DICOM networking protocol and can be initiated via the command:
+```bash
+python3 dicom_network_model_import_scp.py
+```
 
-* `dicom_network_model_import_scp.py` provides a DICOM service class provider (Storage and inference SCP) that will:
+* `dicom_network_model_import_scp.py` is a DICOM service class provider (Storage and inference SCP) that will:
   1. Accept storage requests for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port and ip address
   2. Produce inference from the model
   3. Create an RT Structure file
