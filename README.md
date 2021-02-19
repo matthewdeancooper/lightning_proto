@@ -68,8 +68,14 @@ class UNet(pl.LightningModule):
 ```
 
 
-## Inference
-To be implemented...
+## Deployment
+Deployment is acheived via the DICOM networking protocol.
+
+* `dicom_network_model_import_scp.py` provides a DICOM service class provider (Storage and inference SCP) that will:
+  1. Accept storage requests for a DICOM imaging series, for instance, exported from a treatment planning system to the SCP port and ip address
+  2. Produce inference from the model
+  3. Create an RT Structure file
+  4. Call `dicom_network_model_export_scu.py`, a service class user (Storage SCU) that requests a C-STORE of the structure file to export inferred contours (and the imaging series if flagged) back to the treatment planning system (or to any other port and ip address)
 
 <p align="center">
   <img src="readme_inference.png" width="700">
