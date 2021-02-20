@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+import torch
 import torch.nn.functional as F
 
 
-def bce_with_logits(args):
-    F.binary_cross_entropy_with_logits(args)
+def bce_with_logits(*args):
+    return F.binary_cross_entropy_with_logits(*args)
 
 
 loss_dict = {"bce_with_logits": bce_with_logits}
 
+x = torch.randn(3)
+y = torch.empty(3).random_(2)
 
-def loss_lookup(name):
-    loss_dict.get(name, lambda: 'Invalid')
+loss = loss_dict["bce_with_logits"]

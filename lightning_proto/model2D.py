@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from metrics2D import loss_lookup
+from metrics2D import loss_dict
 
 
 class UNet(pl.LightningModule):
@@ -42,7 +42,7 @@ class UNet(pl.LightningModule):
         super().__init__()
         print("\n-------------------------------------")
         print("\nLightningModule: __init__() - Running")
-        self.loss_function = loss_lookup(loss_function)
+        self.loss_function = loss_dict[loss_function]
         self.optimizer = optimizer
         self.encoder_args = encoder_args
         self.output_channels = output_channels
