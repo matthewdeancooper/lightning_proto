@@ -22,7 +22,7 @@ import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from augmentation2D import augment
+from augmentation2D import transforms
 from standard_utils import flatten_list
 
 
@@ -142,7 +142,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # TODO Implement augmentations
         if self.augment is True:
-            x, y = augment(x, y)
+            x, y = transforms(x, y)
 
         x = torch.Tensor(x)
         y = torch.Tensor(y)
@@ -152,6 +152,9 @@ class Dataset(torch.utils.data.Dataset):
     def read_arrays(self, x_path, y_path):
         x = np.load(x_path).astype("float32")
         y = np.load(y_path).astype("float32")
+
+        x = torch.from_numpy(x)
+        y = torch.from_numpy(y)
         return x, y
 
     def assert_shape(self):
@@ -197,7 +200,6 @@ class DataModule(pl.LightningDataModule):
     def setup(self):
         # Setup is called from multiple GPUs
         print("\nDataModule: setup() - Running")
-
         print("\nFinding path data to split...")
 
         data_paths = Paths(self.data_dir, self.k_folds, self.k_fold_index)
