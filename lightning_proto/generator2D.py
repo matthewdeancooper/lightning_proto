@@ -20,6 +20,7 @@ from pathlib import Path
 import numpy as np
 import pytorch_lightning as pl
 import torch
+import torchvision.transforms.functional as TF
 from torch.utils.data import DataLoader, Dataset
 
 from augmentation2D import transforms
@@ -144,8 +145,10 @@ class Dataset(torch.utils.data.Dataset):
         if self.augment is True:
             x, y = transforms(x, y)
 
-        x = torch.Tensor(x)
-        y = torch.Tensor(y)
+        x = TF.normalize(x, torch.mean(x), torch.std(x))
+
+        # x = torch.Tensor(x)
+        # y = torch.Tensor(y)
 
         return x, y
 

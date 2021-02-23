@@ -160,36 +160,39 @@ class UNet(pl.LightningModule):
 
         return self.output(x)
 
-    def configure_optimizers(self):
-        optimizer = self.optimizer(self.parameters(), self.learning_rate)
-        # scheduler = {
-        #     'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
-        #     'monitor': 'val_loss',
-        #     'interval': 'epoch',
-        # }
-        # return [optimizer], [scheduler]
-        return optimizer
-
     def training_step(self, batch, batch_idx):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log("loss", loss)
-        return {"loss": loss}
+        self.log("train_loss",
+                 loss,
+                 on_step=True,
+                 on_epoch=True,
+                 prog_bar=True,
+                 logger=True)
+        return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log("val_loss", loss, on_epoch=True)
-        # return loss
+        self.log("val_loss", loss, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         output = self(x)
         loss = self.loss_function(output, y)
-        self.log("test_loss", loss, on_epoch=True)
-        # return loss
+        self.log("test_loss", loss, on_epoch=True, logger=True)
+
+    def configure_optimizers(self):
+        optimizer = self.optimizer(self.parameters(), self.learning_rate)
+        scheduler = {
+            'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
+            'monitor': 'val_loss',
+            'interval': 'epoch',
+        }
+        return [optimizer], [scheduler]
+        # return optimizer
 
 
 if __name__ == "__main__":

@@ -15,14 +15,12 @@
 from argparse import ArgumentParser
 
 import pytorch_lightning as pl
+# import torch
+from pytorch_lightning.callbacks import (EarlyStopping, LearningRateMonitor,
+                                         ModelCheckpoint)
 
 from generator2D import DataModule
 from model2D import UNet
-
-# import torch
-# from pytorch_lightning.callbacks import (EarlyStopping, LearningRateMonitor,
-#                                          ModelCheckpoint)
-# from pytorch_lightning.loggers import TensorBoardLogger
 
 
 def main(args):
@@ -32,7 +30,6 @@ def main(args):
     dm.setup()
 
     # LightningModule
-    # NOTE UNet.from_argparse_args(args) not defined in Lightning Module
     model = UNet(
         args.loss_function,
         args.optimizer,
@@ -41,15 +38,14 @@ def main(args):
         args.learning_rate,
     )
 
-    # Callbacks
-    # TODO pytorch_lightning handles some automatically - investigate!
-    # lr_monitor = LearningRateMonitor(logging_interval='epoch')
-    # early_stopping = EarlyStopping('val_loss')
-    # checkpoint = ModelCheckpoint(monitor='val_loss')
-    # callbacks = [early_stopping, lr_monitor, checkpoint]
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+    early_stopping = EarlyStopping('val_loss')
+    checkpoint = ModelCheckpoint(monitor='val_loss')
+    callbacks = [early_stopping, lr_monitor, checkpoint]
 
     # Trainer
-    trainer = pl.Trainer.from_argparse_args(args)
+    trainer = pl.Trainer(callbacks=callbacks)
+    trainer = trainer.from_argparse_args(args)
 
     print("\n-------------------------------------")
     print("TRAINING::")
