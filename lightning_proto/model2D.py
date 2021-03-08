@@ -30,21 +30,21 @@ class UNet(pl.LightningModule):
                             type=str,
                             default="bce_with_logits")
         parser.add_argument("--optimizer", type=str, default=torch.optim.Adam)
-        parser.add_argument("--encoder_args",
+        parser.add_argument("--encoder_channels",
                             type=tuple,
                             default=(32, 64, 128, 256, 512, 1024)),
         parser.add_argument("--output_channels", type=int, default=1),
         parser.add_argument("--learning_rate", type=float, default=1e-3)
         return parser
 
-    def __init__(self, loss_function, optimizer, encoder_args, output_channels,
-                 learning_rate):
+    def __init__(self, loss_function, optimizer, encoder_channels,
+                 output_channels, learning_rate):
         super().__init__()
         print("\n-------------------------------------")
         print("\nLightningModule: __init__() - Running")
         self.loss_function = loss_dict[loss_function]
         self.optimizer = optimizer
-        self.encoder_args = encoder_args
+        self.encoder_channels = encoder_channels
         self.output_channels = output_channels
         self.learning_rate = learning_rate
         print("\nBuilding layers...")
@@ -53,12 +53,12 @@ class UNet(pl.LightningModule):
         print("\nLightningModule: __init__() - Completed")
 
     def build_layers(self):
-        def _build_encoder_channels(encoder_args):
-            input_arguments = 1, *encoder_args[:-1]
-            return tuple(zip(input_arguments, encoder_args))
+        def _build_encoder_args(encoder_channels):
+            input_arguments = 1, *encoder_channels[:-1]
+            return tuple(zip(input_arguments, encoder_channels))
 
-        def _build_decoder_channels(encoder_args):
-            decoder_args = tuple(reversed(encoder_args))
+        def _build_decoder_args(encoder_channels):
+            decoder_args = tuple(reversed(encoder_channels))
             return tuple(zip(decoder_args[:-1], decoder_args[1:]))
 
         def _convolution_sequence(in_channels,
@@ -116,28 +116,28 @@ class UNet(pl.LightningModule):
             return sequence
 
         # Build encoder layers
-        encoder_channels = _build_encoder_channels(self.encoder_args)
-        print("\nEncoder channels")
-        print(encoder_channels)
+        encoder_args = _build_encoder_args(self.encoder_channels)
+        print("\nEncoder args")
+        print(encoder_args)
         self.encoders = nn.ModuleList()
-        for args in encoder_channels:
+        for args in encoder_args:
             self.encoders.append(_encoder_sequence(*args))
 
         # Build transposers and decoders layers
-        decoder_channels = _build_decoder_channels(self.encoder_args)
+        decoder_args = _build_decoder_args(self.encoder_channels)
         print("\nDecoder channels")
-        print(decoder_channels)
+        print(decoder_args)
         self.transposers = nn.ModuleList()
         self.decoders = nn.ModuleList()
-        for args in decoder_channels:
+        for args in decoder_args:
             self.transposers.append(_transposer_sequence(*args))
             self.decoders.append(_decoder_sequence(*args))
 
         # Build output layer
-        output_channels = (decoder_channels[-1][-1], self.output_channels)
+        output_args = (decoder_args[-1][-1], self.output_channels)
         print("\nOutput channels")
-        print(output_channels)
-        self.output = _output_sequence(*output_channels)
+        print(output_args)
+        self.output = _output_sequence(*output_args)
 
     def forward(self, x):
         skips = []
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     model = UNet(
         args.loss_function,
         args.optimizer,
-        args.encoder_args,
+        args.encoder_channels,
         args.output_channels,
         args.learning_rate,
     )

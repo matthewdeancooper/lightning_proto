@@ -139,3 +139,4 @@ cython_debug/
 
 lightning_proto/lightning_logs/
 test_dicom_dataset/
+.png

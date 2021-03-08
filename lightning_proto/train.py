@@ -46,6 +46,7 @@ def main(args):
     # Trainer
     trainer = pl.Trainer(callbacks=callbacks)
     trainer = trainer.from_argparse_args(args)
+    # trainer = pl.Trainer.from_argparse_args(args)
 
     print("\n-------------------------------------")
     print("TRAINING::")

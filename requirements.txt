@@ -18,3 +18,4 @@ pynetdicom
 tqdm
 pytorch_lightning
 tensorboard
+torchvision

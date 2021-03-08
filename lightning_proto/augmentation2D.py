@@ -23,7 +23,7 @@ def transforms(image, segmentation):
         shear = random.randint(-5, 5), random.randint(-5, 5)
         scale = random.uniform(0.9, 1.1)
         image = TF.affine(image, angle, translate, scale, shear)
-        segmentaion = TF.affine(segmentation, angle, translate, scale, shear)
+        segmentation = TF.affine(segmentation, angle, translate, scale, shear)
 
     # Tested
     if random.random() < transform_chance:
@@ -38,11 +38,11 @@ def transforms(image, segmentation):
                                        size)
 
     # Tested
-    if random.random() < transform_chance:
-        kernel_size = 3
-        sigma = random.uniform(1, 2)
-        image = TF.gaussian_blur(image, kernel_size, sigma)
-        segmentation = TF.gaussian_blur(segmentation, kernel_size, sigma)
+    # if random.random() < transform_chance:
+    #     kernel_size = 3
+    #     sigma = random.uniform(1, 2)
+    #     image = TF.gaussian_blur(image, kernel_size, sigma)
+    #     segmentation = TF.gaussian_blur(segmentation, kernel_size, sigma)
 
     return image, segmentation
 
