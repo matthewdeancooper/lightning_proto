@@ -8,7 +8,7 @@
  
   The image file `test_dataset/<patient>/img/<array>.npy` matches with a mask `test_dataset/<patient>/mask/<array>.npy`, each with shape (1, 512, 512). Different grid sizes can be specified, however, this 2D implementation supports only 1 input channel.
   
-* The inference pipeline assumes the data is a path to a directory containing a DICOM imaging series. Each image in a series will be converted to a array for inference.
+* The inference pipeline assumes the data is a path to a directory containing a DICOM imaging series. Each image in a series will be converted to an array for inference.
 
 ## Setup
 
