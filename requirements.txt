@@ -10,6 +10,7 @@ importmagic
 
 numpy
 torch
+torchvision
 matplotlib
 pytest
 pydicom
